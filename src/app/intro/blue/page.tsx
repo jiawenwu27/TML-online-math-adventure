@@ -1,9 +1,18 @@
 "use client";
 
+import { Suspense } from 'react';
 import { useRouter, useSearchParams } from "next/navigation";
 import HoverBox from "@/components/HoverBox";
 
 export default function BlueIntro() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <BlueIntroContent />
+    </Suspense>
+  );
+}
+
+function BlueIntroContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const order = searchParams.get('order') || '';
@@ -27,8 +36,8 @@ console.log(order);
         <h1 className="text-5xl font-bold text-[#13294B] mb-4">What's in store?</h1>
         <p className="text-xl mb-6">
           {count === 1 
-            ? "You'll explore five sets of math problems like this:"
-            : `You'll explore five sets of math problems, each containing one of these ${count} types of challenges:`
+            ? "You&apos;ll explore five sets of math problems like this:"
+            : `You&apos;ll explore five sets of math problems, each containing one of these ${count} types of challenges:`
           }
         </p>
 

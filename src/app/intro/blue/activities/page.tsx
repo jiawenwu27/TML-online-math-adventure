@@ -25,20 +25,31 @@ import Games5 from "@/components/mathactivities/games/Games5";
 // Define interfaces for different activity types
 interface BaseActivityProps {
   onBack: () => void;
-  onComplete: () => void;
+  onComplete?: () => void;
 }
 
-interface StandardActivityProps extends BaseActivityProps {
+export interface StandardActivityProps extends BaseActivityProps {
   answers: string[];
   isCorrect: (boolean | null)[];
   onAnswersChange: (newAnswers: string[]) => void;
   onCorrectChange: (newCorrect: (boolean | null)[]) => void;
-  savedAnswers?: number[];
-  onSaveAnswers?: (answers: number[]) => void;
 }
 
-// Use StandardActivityProps as the unified type
-type ActivityComponentProps = StandardActivityProps;
+export interface GameActivityProps extends BaseActivityProps {
+  savedAnswers: any;
+  onSaveAnswers: (answers: any) => void;
+}
+
+// Remove the union type
+export type ActivityComponentProps = StandardActivityProps;
+
+// Update component types
+type StandardComponent = React.ComponentType<StandardActivityProps>;
+type GameComponent = React.ComponentType<GameActivityProps>;
+
+const formalComponents: StandardComponent[] = [Formal1, Formal2, Formal3, Formal4, Formal5];
+const wordComponents: StandardComponent[] = [Word1, Word2, Word3, Word4, Word5];
+const gameComponents: GameComponent[] = [Games1, Games2, Games3, Games4, Games5];
 
 export default function BlueActivities() {
   const router = useRouter();
@@ -62,12 +73,7 @@ export default function BlueActivities() {
   const [formalCorrect, setFormalCorrect] = useState<(boolean | null)[][]>(Array(5).fill([]).map(() => Array(3).fill(null)));
   const [wordAnswers, setWordAnswers] = useState<string[][]>(Array(5).fill([]).map(() => Array(3).fill("")));
   const [wordCorrect, setWordCorrect] = useState<(boolean | null)[][]>(Array(5).fill([]).map(() => Array(3).fill(null)));
-  const [gameAnswers, setGameAnswers] = useState<number[][]>(Array(5).fill([]));
-
-  // Define activity components
-  const formalComponents = [Formal1, Formal2, Formal3, Formal4, Formal5];
-  const wordComponents = [Word1, Word2, Word3, Word4, Word5];
-  const gameComponents = [Games1, Games2, Games3, Games4, Games5];
+  const [gameAnswers, setGameAnswers] = useState<any[]>(Array(5).fill(null));
 
   // Convert order string into activity sequence
   const activitySequence = order.split("").map((num) => {
@@ -97,61 +103,50 @@ export default function BlueActivities() {
 
   const renderActivity = (setIndex: number) => {
     const activityType = activitySequence[setIndex];
-    let Component;
 
-    // Determine the appropriate component
-    switch (activityType) {
-      case "formal":
-        Component = formalComponents[setIndex];
-        break;
-      case "word":
-        Component = wordComponents[setIndex];
-        break;
-      case "game":
-        Component = gameComponents[setIndex];
-        break;
-      default:
-        Component = formalComponents[setIndex];
+    if (activityType === "game") {
+      const GameComponent = gameComponents[setIndex];
+      return <GameComponent
+        onBack={() => handleRevisit(Math.max(0, setIndex - 1))}
+        onComplete={handleActivityComplete || (() => {})}
+        savedAnswers={gameAnswers[setIndex] || []}
+        onSaveAnswers={(answers: any) => {
+          const newGameAnswers = [...gameAnswers];
+          newGameAnswers[setIndex] = answers;
+          setGameAnswers(newGameAnswers);
+        }}
+      />;
     }
 
-    const commonProps: ActivityComponentProps = {
-      onBack: () => handleRevisit(Math.max(0, setIndex - 1)),
-      onComplete: handleActivityComplete,
-      answers: activityType === "formal" ? formalAnswers[setIndex] : activityType === "word" ? wordAnswers[setIndex] : [],
-      isCorrect: activityType === "formal" ? formalCorrect[setIndex] : activityType === "word" ? wordCorrect[setIndex] : [],
-      onAnswersChange: (newAnswers: string[]) => {
-        if (activityType === "formal") {
-          const newFormalAnswers = [...formalAnswers];
-          newFormalAnswers[setIndex] = newAnswers;
-          setFormalAnswers(newFormalAnswers);
-        } else if (activityType === "word") {
+    const Component = activityType === "word" ? wordComponents[setIndex] : formalComponents[setIndex];
+    return <Component
+      onBack={() => handleRevisit(Math.max(0, setIndex - 1))}
+      onComplete={handleActivityComplete}
+      answers={activityType === "word" ? wordAnswers[setIndex] : formalAnswers[setIndex]}
+      isCorrect={activityType === "word" ? wordCorrect[setIndex] : formalCorrect[setIndex]}
+      onAnswersChange={(newAnswers) => {
+        if (activityType === "word") {
           const newWordAnswers = [...wordAnswers];
           newWordAnswers[setIndex] = newAnswers;
           setWordAnswers(newWordAnswers);
+        } else {
+          const newFormalAnswers = [...formalAnswers];
+          newFormalAnswers[setIndex] = newAnswers;
+          setFormalAnswers(newFormalAnswers);
         }
-      },
-      onCorrectChange: (newCorrect: (boolean | null)[]) => {
-        if (activityType === "formal") {
-          const newFormalCorrect = [...formalCorrect];
-          newFormalCorrect[setIndex] = newCorrect;
-          setFormalCorrect(newFormalCorrect);
-        } else if (activityType === "word") {
+      }}
+      onCorrectChange={(newCorrect) => {
+        if (activityType === "word") {
           const newWordCorrect = [...wordCorrect];
           newWordCorrect[setIndex] = newCorrect;
           setWordCorrect(newWordCorrect);
+        } else {
+          const newFormalCorrect = [...formalCorrect];
+          newFormalCorrect[setIndex] = newCorrect;
+          setFormalCorrect(newFormalCorrect);
         }
-      },
-      savedAnswers: activityType === "game" ? gameAnswers[setIndex] : undefined,
-      onSaveAnswers: activityType === "game"
-        ? (answers: number[]) => {
-            const newGameAnswers = [...gameAnswers];
-            newGameAnswers[setIndex] = answers;
-            setGameAnswers(newGameAnswers);
-          }
-        : undefined,
-    };
-
-    return <Component {...commonProps} />;
+      }}
+    />;
   };
 
   return (

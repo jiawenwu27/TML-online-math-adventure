@@ -6,8 +6,13 @@ import HoverBoxSelectable from "@/components/HoverBoxSelectable";
 import Formal1 from "@/components/mathactivities/formal/Formal2";
 import Word1 from "@/components/mathactivities/word/Word1";
 import Games1 from "@/components/mathactivities/games/Games1";
+import { 
+  ActivityComponentProps, 
+  StandardActivityProps, 
+  GameActivityProps 
+} from "@/app/intro/blue/activities/page";
 
-export default function ActivitySelection() {
+export default function Notes({ onBack }: Partial<ActivityComponentProps>) {
   const [selectedActivity, setSelectedActivity] = useState<string | null>(null);
   const [showQuestion, setShowQuestion] = useState(false);
   const router = useRouter();
@@ -24,14 +29,31 @@ export default function ActivitySelection() {
     setShowQuestion(true);
   };
 
+  // Separate props for different component types
+  const standardProps: StandardActivityProps = {
+    onBack: () => {},
+    onComplete: () => {},
+    answers: [],
+    isCorrect: [],
+    onAnswersChange: () => {},
+    onCorrectChange: () => {},
+  };
+
+  const gameProps: GameActivityProps = {
+    onBack: () => {},
+    onComplete: () => {},
+    savedAnswers: [],
+    onSaveAnswers: () => {},
+  };
+
   if (showQuestion) {
     switch (selectedActivity) {
       case 'formal':
-        return <Formal1 onBack={() => setShowQuestion(false)} />;
+        return <Formal1 {...standardProps} />;
       case 'word':
-        return <Word1 onBack={() => setShowQuestion(false)} />;
+        return <Word1 {...standardProps} />;
       case 'game':
-        return <Games1 onBack={() => setShowQuestion(false)} />;
+        return <Games1 {...gameProps} />;
       default:
         return null;
     }
