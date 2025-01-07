@@ -36,8 +36,8 @@ console.log(order);
         <h1 className="text-5xl font-bold text-[#13294B] mb-4">What's in store?</h1>
         <p className="text-xl mb-6">
           {count === 1 
-            ? "You&apos;ll explore five sets of math problems like this:"
-            : `You&apos;ll explore five sets of math problems, each containing one of these ${count} types of challenges:`
+            ? "You'll explore five sets of math problems like this:"
+            : `You'll explore five sets of math problems, each containing one of these ${count} types of challenges:`
           }
         </p>
 
