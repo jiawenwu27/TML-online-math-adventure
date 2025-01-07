@@ -1,0 +1,128 @@
+/* Base Style for Arrow Buttons */
+.arrow-button {
+  display: inline-block;
+  position: relative;
+  background-color: #f6f4f3; /* Light gray */
+  color: #000; /* Black text */
+  font-size: 22px;
+  font-weight: bold;
+  padding: 10px 20px;
+  border: 2px solid #d1d5db; /* Gray border */
+  border-radius: 5px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+/* Arrow Tail (default) */
+.arrow-button::after {
+  content: '';
+  position: absolute;
+  border-width: 20px;
+  border-style: solid;
+  border-color: transparent transparent transparent #d1d5db; /* Yellow arrow tail */
+  transition: all 0.3s ease;
+}
+
+/* Hover */
+.arrow-button:hover {
+  background-color: #9a9b9f; /* Darker gray */
+  border-color: #9ca3af; /* Darker border */
+}
+
+.arrow-button:hover::after {
+  border-color: transparent transparent transparent #9a9b9f; /* Matches hover background */
+}
+
+/* Active State */
+.arrow-button.active {
+  background-color: #34d399; /* Green */
+  color: #fff;
+  border-color: #10b981;
+}
+
+.arrow-button.active::after {
+  border-color: transparent transparent transparent #34d399; /* Matches active background */
+}
+
+/* Wrong State */
+.arrow-button.wrong {
+  background-color: #f87171; /* Red */
+  color: #fff;
+  border-color: #ef4444;
+}
+
+.arrow-button.wrong::after {
+  border-color: transparent transparent transparent #f87171; /* Matches wrong background */
+}
+
+/* Directional Arrow Styles */
+
+/* Right */
+.arrow-button.arrow-right::after {
+  top: 50%;
+  right: -45px;
+  left: auto;
+  transform: translateY(-50%);
+}
+
+/* Left */
+.arrow-button.arrow-left::after {
+  top: 50%;
+  right: auto;
+  left: -45px;
+  transform: translateY(-50%) rotate(180deg);
+}
+
+/* Top */
+.arrow-button.arrow-top::after {
+  top: -35px;
+  right: 50%;
+  left: 50%;
+  transform: translateX(-50%) rotate(270deg);
+}
+
+/* Bottom */
+.arrow-button.arrow-bottom::after {
+  top: auto;
+  bottom: -35px;
+  right: 50%;
+  left: 50%;
+  transform: translateX(-50%) rotate(90deg);
+}
+
+/* Top-Right */
+.arrow-button.arrow-top-right::after {
+  top: -35px;
+  right: -35px;
+  left: auto;
+  bottom: auto;
+  transform: rotate(315deg);
+}
+
+/* Top-Left */
+.arrow-button.arrow-top-left::after {
+  top: -35px;
+  left: -35px;
+  right: auto;
+  bottom: auto;
+  transform: rotate(225deg);
+}
+
+/* Bottom-Right */
+.arrow-button.arrow-bottom-right::after {
+  bottom: -35px;
+  right: -35px;
+  left: auto;
+  top: auto;
+  transform: rotate(45deg);
+}
+
+/* Bottom-Left */
+.arrow-button.arrow-bottom-left::after {
+  bottom: -35px;
+  left: -35px;
+  right: auto;
+  top: auto;
+  transform: rotate(135deg);
+}

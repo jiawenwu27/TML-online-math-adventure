@@ -1,0 +1,96 @@
+.hover-box {
+  width: 300px;
+  height: 300px;
+  perspective: 1000px;
+  cursor: pointer;
+  margin: 1rem;
+}
+
+/* Add styles for wide box */
+.hover-box--wide {
+  width: calc(600px + 2rem); /* Double width plus margin */
+}
+
+.hover-box__container {
+  position: relative;
+  width: 100%; /* Make it relative to parent instead of fixed */
+  height: 100%; /* Make it relative to parent instead of fixed */
+  transform-style: preserve-3d;
+  transition: transform 0.7s;
+}
+
+.hover-box:hover .hover-box__container {
+  transform: rotateY(180deg);
+}
+
+.hover-box__front,
+.hover-box__back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  border-radius: 0.375rem; /* rounded-md */
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); /* shadow-md */
+}
+
+.hover-box__front {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hover-box__title {
+  color: white;
+  font-weight: 700; /* font-bold */
+  font-size: 2rem; /* text-xl */
+}
+
+.hover-box__back {
+  background-color: white;
+  transform: rotateY(180deg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 1.5rem;
+  gap: 1rem;
+}
+
+.hover-box__image-container {
+  width: 100%;
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  max-height: 70%; /* Default max height when there's content */
+}
+
+.hover-box__image-container--full {
+  max-height: 100%; /* Full height when there's no content */
+}
+
+.hover-box__image {
+  width: 100%;
+  height: auto; /* Let height adjust automatically */
+  max-height: 100%;
+  object-fit: contain; /* Changed from cover to contain to show whole image */
+}
+
+.hover-box__content {
+  text-align: center;
+  color: #374151;
+  margin-bottom: 1rem;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-grow: 1;
+}
+
+/* New class for left-aligned content */
+.hover-box__content--left {
+  text-align: left;
+  justify-content: flex-start;
+  align-items: flex-start;
+} 

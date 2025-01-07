@@ -2,9 +2,27 @@
 @tailwind components;
 @tailwind utilities;
 
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
+}
+
+@keyframes highlight {
+  0%, 100% {
+    transform: scale(1);
+    color: #e85c5ae9;
+  }
+  50% {
+    transform: scale(1.1);
+    color: #f0cb53de;
+  }
+}
+
+.animate-highlight {
+  display: inline-block;
+  font-weight: bold;
+  animation: highlight 1.5s infinite;
 }
 
 @media (prefers-color-scheme: dark) {
