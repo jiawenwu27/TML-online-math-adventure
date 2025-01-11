@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import HoverBoxSelectable from "@/components/HoverBoxSelectable";
 import { activitySets } from "@/app/data/activitySets";
 import ProgressBar from "@/components/ProgressBar";
@@ -59,6 +59,20 @@ export default function ActivitySelection() {
   const [wordAnswers, setWordAnswers] = useState<string[][]>(Array(5).fill([]).map(() => Array(3).fill("")));
   const [wordCorrect, setWordCorrect] = useState<(boolean | null)[][]>(Array(5).fill([]).map(() => Array(3).fill(null)));
   const [gameAnswers, setGameAnswers] = useState<any[]>(Array(5).fill([]));
+
+  // Track changes for each formal activity separately
+  formalCorrect.forEach((_, index) => {
+    useEffect(() => {
+      if (formalCorrect[index]) {
+        formalCorrect[index].forEach((value, elementIndex) => {
+          if (value !== null) {
+            console.log(`Activity ${index + 1}, Question ${elementIndex + 1}:`);
+            console.log(`Correct: ${value}`);
+          }
+        });
+      }
+    }, [formalCorrect[index]]);
+  });
 
   const handleActivitySelect = (activityType: string) => {
     const newSelections = [...selections];

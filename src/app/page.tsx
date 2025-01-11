@@ -1,25 +1,95 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { Amplify } from 'aws-amplify';
+import outputs from '../../amplify_outputs.json';
+import { generateClient } from 'aws-amplify/data'
+import type { Schema } from '../../amplify/data/resource'
+const client = generateClient<Schema>()
+
+Amplify.configure(outputs);
+
 
 export default function Home() {
-  const [magicCode, setMagicCode] = useState(""); // Capture the code input
+  const [magicCode, setMagicCode] = useState("");
+  const [userID, setUserID] = useState("");
   const router = useRouter();
 
-  // Function to handle button click
-  const handleRedirect = () => {
-    if (magicCode.toLowerCase() === "green") {
-      localStorage.setItem("magicCode", magicCode.toLowerCase());
-      router.push("/intro/green");
-    } else if (magicCode.toLowerCase().startsWith("blue")) {
-      localStorage.setItem("magicCode", magicCode.toLowerCase());
-      router.push(`/intro/blue?order=${magicCode.slice(4)}`);
-    } else {
-      alert("Invalid code! Please try again.");
+  // Function to log user behavior
+  const logBehavior = async (location: string, behavior: string, input: string, result: string) => {
+    try {
+      await client.models.Storage.create({
+        userId: userID,
+        location: location,
+        behavior: behavior as 'input' | 'click',
+        input: input,
+        result: result,
+        timestamp: new Date().toISOString(),
+      });
+      console.log("Logged behavior successfully");
+    } catch (error) {
+      console.error("Error logging behavior:", error);
     }
   };
 
+  // Modified input handlers with logging
+  const handleMagicCodeInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setMagicCode(e.target.value);
+    logBehavior(
+      "magic-code-input",
+      "input",
+      e.target.value,
+      "NA"
+    );
+  };
+
+  const handleUserIDInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUserID(e.target.value);
+    logBehavior(
+      "user-id-input",
+      "input",
+      e.target.value,
+      "NA"
+    );
+  };
+
+  // Modified redirect handler with logging
+  const handleRedirect = async () => {
+    let result = "wrong-code";
+    
+    if (magicCode.toLowerCase() === "green") {
+      result = "redirect-to-green";
+      localStorage.setItem("magicCode", magicCode.toLowerCase());
+      localStorage.setItem("userID", userID);
+      await logBehavior(
+        "start-button",
+        "click",
+        "NA",
+        result
+      );
+      router.push("/intro/green");
+    } else if (magicCode.toLowerCase().startsWith("blue")) {
+      result = "redirect-to-blue";
+      localStorage.setItem("magicCode", magicCode.toLowerCase());
+      localStorage.setItem("userID", userID);
+      await logBehavior(
+        "start-button",
+        "click",
+        "NA",
+        result
+      );
+      router.push(`/intro/blue?order=${magicCode.slice(4)}`);
+    } else {
+      await logBehavior(
+        "start-button",
+        "click",
+        "NA",
+        result
+      );
+      alert("Invalid code! Please try again.");
+    }
+  };
 
   return (
     <div
@@ -85,6 +155,20 @@ export default function Home() {
       {/* Code Input and Button */}
       <div className="flex flex-col items-center w-[90%] max-w-md">
         <label
+          htmlFor="user-id"
+          className="text-lg font-semibold text-gray-700 mb-2"
+        >
+          Enter your Participant ID:
+        </label>
+        <input
+          type="text"
+          value={userID}
+          onChange={handleUserIDInput}
+          placeholder="Enter User ID"
+          className="w-full p-3 mb-4 rounded-md border-2 border-[#003DA5] focus:outline-none focus:ring focus:ring-[#5178C9]"
+        />
+
+        <label
           htmlFor="magic-code"
           className="text-lg font-semibold text-gray-700 mb-2"
         >
@@ -93,7 +177,7 @@ export default function Home() {
         <input
           type="text"
           value={magicCode}
-          onChange={(e) => setMagicCode(e.target.value)}
+          onChange={handleMagicCodeInput}
           placeholder="Enter code here"
           className="w-full p-3 rounded-md border-2 border-[#003DA5] focus:outline-none focus:ring focus:ring-[#5178C9]"
         />
