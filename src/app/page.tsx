@@ -27,6 +27,7 @@ export default function Home() {
         result: result,
         timestamp: new Date().toISOString(),
       });
+      console.log(userID)
       console.log("Logged behavior successfully");
     } catch (error) {
       console.error("Error logging behavior:", error);
