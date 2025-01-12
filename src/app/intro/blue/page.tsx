@@ -1,8 +1,11 @@
 "use client";
 
-import { Suspense } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from "next/navigation";
 import HoverBox from "@/components/HoverBox";
+import { generateClient } from 'aws-amplify/data';
+import type { Schema } from '../../../../amplify/data/resource';
+const client = generateClient<Schema>();
 
 export default function BlueIntro() {
   return (
@@ -16,7 +19,44 @@ function BlueIntroContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const order = searchParams.get('order') || '';
-console.log(order);
+  const [userID, setUserID] = useState("");
+
+  useEffect(() => {
+    // Get userID from localStorage when component mounts
+    const storedUserID = localStorage.getItem("userID");
+    if (storedUserID) {
+      setUserID(storedUserID);
+    }
+  }, []);
+
+  // Add logBehavior function
+  const logBehavior = async (location: string, behavior: string, input: string, result: string) => {
+    try {
+      await client.models.Storage.create({
+        userId: userID,
+        location: location,
+        behavior: behavior as 'input' | 'click',
+        input: input,
+        result: result,
+        timestamp: new Date().toISOString(),
+      });
+      console.log("Logged behavior successfully");
+    } catch (error) {
+      console.error("Error logging behavior:", error);
+    }
+  };
+
+  // Modified button click handler
+  const handleStartClick = async () => {
+    await logBehavior(
+      "blue-intro-start-button",
+      "click",
+      "NA",
+      "redirect-to-blue-activities"
+    );
+    router.push("/intro/blue/activities");
+  };
+
   // Function to determine which types of problems are in the sequence
   const getProblemTypes = () => {
     const uniqueTypes = new Set(order.split(''));
@@ -91,7 +131,7 @@ console.log(order);
 
         {/* Button to Start the Adventure */}
         <button
-          onClick={() => router.push("/intro/blue/activities")}
+          onClick={handleStartClick}
           className="bg-[#FF5F05] text-white font-bold py-4 px-8 rounded-lg shadow-lg hover:bg-[#F07249] text-2xl"
         >
           Let the adventure begin!

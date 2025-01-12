@@ -2,9 +2,50 @@
 
 import { useRouter } from "next/navigation";
 import HoverBox from "@/components/HoverBox";
+import { useState, useEffect } from "react";
+import { generateClient } from 'aws-amplify/data';
+import type { Schema } from '../../../../amplify/data/resource';
+const client = generateClient<Schema>();
 
 export default function GreenIntro() {
   const router = useRouter();
+  const [userID, setUserID] = useState("");
+
+  useEffect(() => {
+    // Get userID from localStorage when component mounts
+    const storedUserID = localStorage.getItem("userID");
+    if (storedUserID) {
+      setUserID(storedUserID);
+    }
+  }, []);
+
+  // Add logBehavior function
+  const logBehavior = async (location: string, behavior: string, input: string, result: string) => {
+    try {
+      await client.models.Storage.create({
+        userId: userID,
+        location: location,
+        behavior: behavior as 'input' | 'click',
+        input: input,
+        result: result,
+        timestamp: new Date().toISOString(),
+      });
+      console.log("Logged behavior successfully");
+    } catch (error) {
+      console.error("Error logging behavior:", error);
+    }
+  };
+
+  // Modified button click handler
+  const handleStartClick = async () => {
+    await logBehavior(
+      "green-intro-start-button",
+      "click",
+      "NA",
+      "redirect-to-green-activities"
+    );
+    router.push("/intro/green/activities/1");
+  };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6">
@@ -63,7 +104,7 @@ export default function GreenIntro() {
 
         {/* Button to Start the Adventure */}
         <button
-          onClick={() => router.push("/intro/green/activities/1")}
+          onClick={handleStartClick}
           className="bg-[#FF5F05] text-white font-bold py-4 px-8 rounded-lg shadow-lg hover:bg-[#F07249] text-2xl"
         >
           Let the adventure begin!

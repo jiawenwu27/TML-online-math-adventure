@@ -18,6 +18,7 @@ export const metadata: Metadata = {
   description: "A fun family math adventure",
   icons: {
     icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
   },
 };
 

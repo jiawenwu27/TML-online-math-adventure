@@ -13,6 +13,8 @@ export const schema = a.schema({
     .authorization(allow => [allow.publicApiKey()])
 });
 
+
+
 // Used for code completion / highlighting when making requests from frontend
 export type Schema = ClientSchema<typeof schema>;
 

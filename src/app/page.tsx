@@ -34,37 +34,41 @@ export default function Home() {
     }
   };
 
-  // Modified input handlers with logging
+  // Remove logging from input handlers
   const handleMagicCodeInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     setMagicCode(e.target.value);
-    logBehavior(
-      "magic-code-input",
-      "input",
-      e.target.value,
-      "NA"
-    );
   };
 
   const handleUserIDInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUserID(e.target.value);
-    logBehavior(
-      "user-id-input",
-      "input",
-      e.target.value,
-      "NA"
-    );
   };
 
-  // Modified redirect handler with logging
+  // Modified redirect handler with multiple logging calls
   const handleRedirect = async () => {
     let result = "wrong-code";
+    
+    // Log the participant ID input
+    await logBehavior(
+      "user-id-input",
+      "input",
+      userID,
+      "NA"
+    );
+
+    // Log the magic code input
+    await logBehavior(
+      "magic-code-input",
+      "input",
+      magicCode,
+      "NA"
+    );
     
     if (magicCode.toLowerCase() === "green") {
       result = "redirect-to-green";
       localStorage.setItem("magicCode", magicCode.toLowerCase());
       localStorage.setItem("userID", userID);
       await logBehavior(
-        "start-button",
+        "home-start-button",
         "click",
         "NA",
         result
@@ -75,7 +79,7 @@ export default function Home() {
       localStorage.setItem("magicCode", magicCode.toLowerCase());
       localStorage.setItem("userID", userID);
       await logBehavior(
-        "start-button",
+        "home-start-button",
         "click",
         "NA",
         result
@@ -83,7 +87,7 @@ export default function Home() {
       router.push(`/intro/blue?order=${magicCode.slice(4)}`);
     } else {
       await logBehavior(
-        "start-button",
+        "home-start-button",
         "click",
         "NA",
         result
