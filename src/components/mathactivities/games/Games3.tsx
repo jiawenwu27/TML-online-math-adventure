@@ -1,7 +1,8 @@
 import { useState } from "react";
 import "@/styles/arrowbutton.css";
 
-interface Games3Props {
+// Import the GameActivityProps interface
+interface GameActivityProps {
   onBack: () => void;
   onComplete?: () => void;
   savedAnswers?: {
@@ -16,6 +17,7 @@ interface Games3Props {
     currentCell: number;
     isComplete: boolean;
   }) => void;
+  onLogBehavior: (location: string, behavior: string, input: string, result: string) => void;
 }
 
 interface Cell {
@@ -33,7 +35,9 @@ export default function Games3({
   onComplete,
   savedAnswers,
   onSaveAnswers,
-}: Games3Props) {
+  onLogBehavior
+}: GameActivityProps) {
+  console.log("onLogBehavior prop:", !!onLogBehavior);
   const [currentCell, setCurrentCell] = useState(savedAnswers?.currentCell ?? 0);
   const [solvedPaths, setSolvedPaths] = useState<number[]>(savedAnswers?.solvedPaths ?? []);
   const [wrongCells, setWrongCells] = useState<number[]>(savedAnswers?.wrongCells ?? []);
@@ -92,45 +96,87 @@ export default function Games3({
     ];
   
 
-  const handleAnswerClick = (id: number) => {
-    const current = grid[currentCell];
+  const handleAnswerClick = async (id: number) => {
+    const current = grid[currentCell!];
+
+    // Initial click logging
+    await onLogBehavior(
+      "games3",
+      "click",
+      `cell:${id}`,
+      `from:${currentCell}`
+    );
 
     if (current.possibleanswerid?.includes(id)) {
       if (current.answer?.includes(id)) {
-        // Correct answer
+        // Correct answer path
         const newSolvedPaths = [...solvedPaths, currentCell, id];
         setSolvedPaths(newSolvedPaths);
         const nextCellIndex = current.possibleanswerid.indexOf(id);
         const nextCell = current.next ? current.next[nextCellIndex] : null;
 
-        // Check if the next cell is the castle (id: 34)
         if (nextCell === 34) {
+          // Game completion logging
+          try {
+            console.log("Attempting to log game completion");
+            await onLogBehavior(
+              "games3",
+              "game-complete",
+              `final-path:${solvedPaths.join(',')}`,
+              "reached-castle"
+            );
+            console.log("Successfully logged game completion");
+          } catch (error) {
+            console.error("Failed to log game completion:", error);
+          }
           setMessage("Congratulations!");
           setIsComplete(true);
           setCurrentCell(nextCell);
-          // Save the completed state
-          onSaveAnswers({
-            solvedPaths: newSolvedPaths,
-            wrongCells,
-            currentCell: nextCell,
-            isComplete: true,
-          });
         } else if (nextCell !== null) {
+          // Correct move logging
+          try {
+            console.log("Attempting to log correct move");
+            await onLogBehavior(
+              "games3",
+              "correct-move",
+              `path:${currentCell}->${id}`,
+              `next:${nextCell}`
+            );
+            console.log("Successfully logged correct move");
+          } catch (error) {
+            console.error("Failed to log correct move:", error);
+          }
           setCurrentCell(nextCell);
           setMessage("Correct! Proceed to the next question.");
-          // Save the current state
-          onSaveAnswers({
-            solvedPaths: newSolvedPaths,
-            wrongCells,
-            currentCell: nextCell,
-            isComplete: false,
-          });
         }
+
+        // Save the state after a correct move
+        onSaveAnswers({
+          solvedPaths: newSolvedPaths,
+          wrongCells,
+          currentCell: nextCell ?? 0,
+          isComplete: nextCell === 34,
+        });
+
       } else {
-        // Wrong answer
+        // Wrong move logging
+        try {
+          console.log("Attempting to log wrong move");
+          await onLogBehavior(
+            "games3",
+            "wrong-move",
+            `attempted:${id}`,
+            `correct:${current.answer?.join(',')}`
+          );
+          console.log("Successfully logged wrong move");
+        } catch (error) {
+          console.error("Failed to log wrong move:", error);
+        }
+        
         const newWrongCells = [...wrongCells, id];
         setWrongCells(newWrongCells);
         setMessage("Wrong path! Try again.");
+        
         // Save the wrong attempt
         onSaveAnswers({
           solvedPaths,
@@ -138,7 +184,6 @@ export default function Games3({
           currentCell,
           isComplete: false,
         });
-        console.log(isComplete);
       }
     }
   };
@@ -234,7 +279,17 @@ export default function Games3({
                 🎉 Amazing work! You've successfully reached the castle! 🏰
               </div>
               <button
-                onClick={onComplete}
+                onClick={async () => {
+                  await onLogBehavior(
+                    "games3",
+                    "game-complete",
+                    "next-button-games3",
+                    "complete"
+                  );
+                  if (onComplete) {
+                    onComplete();
+                  }
+                }}
                 className="bg-[#FF5F05] text-2xl text-white px-6 py-2 rounded-lg"
               >
                 NEXT

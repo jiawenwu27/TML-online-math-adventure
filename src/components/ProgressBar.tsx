@@ -4,6 +4,7 @@ interface ProgressBarProps {
     completedSteps: number;
     onStepClick: (index: number) => void;
     selections: (string | null)[];
+    disabledSteps: boolean[];
   }
   
   export default function ProgressBar({
@@ -11,7 +12,8 @@ interface ProgressBarProps {
     currentStep,
     completedSteps,
     onStepClick,
-    selections
+    selections,
+    disabledSteps
   }: ProgressBarProps) {
     return (
       <div className="w-full max-w-3xl mx-auto mb-8">
@@ -22,17 +24,19 @@ interface ProgressBarProps {
                 onClick={() => onStepClick(index)}
                 className={`
                   w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold
-                  ${selections[index] 
-                    ? 'bg-[#13294B] text-white cursor-pointer' 
+                  ${disabledSteps[index]
+                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                    : index < currentStep - 1
+                    ? 'bg-[#13294B] text-white cursor-pointer'
                     : index === currentStep - 1
-                    ? 'bg-[#FF5F05] text-white'
+                    ? 'bg-[#FF5F05] text-white cursor-pointer'
                     : 'bg-gray-200 text-gray-500 cursor-not-allowed'}
                 `}
-                disabled={!selections[index]}
+                disabled={disabledSteps[index] || index > currentStep - 1}
               >
                 {index + 1}
               </button>
-              {selections[index] && (
+              {selections[index] && !disabledSteps[index] && (
                 <span className="text-sm mt-1">
                   {selections[index]?.charAt(0).toUpperCase() + selections[index]?.slice(1)}
                 </span>

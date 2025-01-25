@@ -7,15 +7,17 @@ interface ActivityComponentProps {
   isCorrect: (boolean | null)[];
   onAnswersChange: (answers: string[]) => void;
   onCorrectChange: (isCorrect: (boolean | null)[]) => void;
+  onLogBehavior: (location: string, behavior: string, input: string, result: string) => void;
 }
 
 export default function Word4({ 
   onBack, 
   onComplete,
-  answers,
-  isCorrect,
+  answers: propAnswers, 
+  isCorrect: propIsCorrect, 
   onAnswersChange,
-  onCorrectChange
+  onCorrectChange,
+  onLogBehavior
 }: ActivityComponentProps) {
   const questions = [
     {
@@ -37,16 +39,28 @@ export default function Word4({
     },
   ];
 
+  // Initialize answers with empty strings and isCorrect with null if they're empty
+  const answers = propAnswers.length ? propAnswers : Array(5).fill(""); // 5 total answers needed for this component
+  const isCorrect = propIsCorrect.length ? propIsCorrect : Array(3).fill(null); // 3 questions total
+
   const handleFirstQuestionInput = (index: number, value: string) => {
     const newAnswers = [...answers];
     newAnswers[index] = value;
     onAnswersChange(newAnswers);
   };
 
-  const checkFirstQuestion = () => {
+  const checkFirstQuestion = async () => {
     const correct = answers.slice(0, 3).every(
       (answer, index) => answer === questions[0].correctAnswers?.[index]
     );
+    
+    await onLogBehavior(
+      "word4-first-question",
+      "click",
+      `check-answer-button:${answers.slice(0, 3).join(',')}`,
+      correct ? "correct" : "incorrect"
+    );
+
     const updatedIsCorrect = [...isCorrect];
     updatedIsCorrect[0] = correct;
     onCorrectChange(updatedIsCorrect);
@@ -58,21 +72,36 @@ export default function Word4({
     onAnswersChange(newAnswers);
   };
 
-  const checkWordProblem = (index: number) => {
+  const checkWordProblem = async (index: number) => {
     const questionIndex = index + 1;
-    const userAnswer = parseInt(answers[index + 3]); // offset by 3
+    const userAnswer = parseInt(answers[index + 3]);
     const correct = userAnswer === questions[questionIndex].correctAnswer;
+
+    await onLogBehavior(
+      `word4-question-${questionIndex}`,
+      "click",
+      `check-answer-button:${userAnswer}`,
+      correct ? "correct" : "incorrect"
+    );
 
     const updatedIsCorrect = [...isCorrect];
     updatedIsCorrect[questionIndex] = correct;
     onCorrectChange(updatedIsCorrect);
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (isCorrect.some((result) => result !== true)) {
       alert("Please solve all the problems correctly before moving on!");
       return;
     }
+    
+    await onLogBehavior(
+      "word4",
+      "click",
+      "next-button-word4",
+      "complete"
+    );
+
     if (onComplete) {
       onComplete();
     }
@@ -93,7 +122,9 @@ export default function Word4({
                   maxLength={1}
                   value={answers[0]}
                   onChange={(e) => handleFirstQuestionInput(0, e.target.value)}
+                  onWheel={(e) => (e.target as HTMLInputElement).blur()}
                   className="w-16 h-16 border-2 border-gray-300 rounded text-center"
+                  style={{ WebkitAppearance: 'none', MozAppearance: 'textfield' }}
                 />
                 <div className="w-16 h-16 border-2 border-gray-300 rounded flex items-center justify-center">3</div>
                 <div className="w-16 h-16 border-2 border-gray-300 rounded flex items-center justify-center">7</div>
@@ -105,14 +136,18 @@ export default function Word4({
                     maxLength={1}
                     value={answers[1]}
                     onChange={(e) => handleFirstQuestionInput(1, e.target.value)}
+                    onWheel={(e) => (e.target as HTMLInputElement).blur()}
                     className="w-16 h-16 border-2 border-gray-300 rounded text-center mr-2"
+                    style={{ WebkitAppearance: 'none', MozAppearance: 'textfield' }}
                   />
                   <input
                     type="text"
                     maxLength={1}
                     value={answers[2]}
                     onChange={(e) => handleFirstQuestionInput(2, e.target.value)}
-                    className="w-16 h-16 border-2 border-gray-300 rounded text-center"
+                    onWheel={(e) => (e.target as HTMLInputElement).blur()}
+                    className="w-16 h-16 border-2 border-gray-300 rounded text-center mr-2"
+                    style={{ WebkitAppearance: 'none', MozAppearance: 'textfield' }}
                   />
                 </div>
 
@@ -167,8 +202,10 @@ export default function Word4({
                   type="number"
                   value={answers[index + 3]}
                   onChange={(e) => handleWordProblemInput(index, e.target.value)}
+                  onWheel={(e) => (e.target as HTMLInputElement).blur()}
                   className="border-2 border-gray-300 rounded-lg px-4 py-2 text-xl mb-2"
                   placeholder="Enter your answer"
+                  style={{ WebkitAppearance: 'none', MozAppearance: 'textfield' }}
                 />
                 <button
                   onClick={() => checkWordProblem(index)}

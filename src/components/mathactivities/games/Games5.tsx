@@ -1,251 +1,404 @@
-import { useState } from "react";
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import ReactConfetti from 'react-confetti';
+import useWindowSize from 'react-use/lib/useWindowSize';
 
-interface Games5Props {
+interface ActivityComponentProps {
   onBack: () => void;
   onComplete?: () => void;
+  savedAnswers?: number[];
+  onSaveAnswers: (answers: number[]) => void;
+  onLogBehavior: (location: string, behavior: string, input: string, result: string) => void;
 }
 
-interface Cell {
-  id: number;
-  allowInput: boolean;
-  refNumber?: number;
-  answer?: number;
-}
+export default function Games5({
+  onBack,
+  onComplete,
+  savedAnswers = [],
+  onSaveAnswers,
+  onLogBehavior
+}: ActivityComponentProps) {
+  const [selectedLetters, setSelectedLetters] = useState<{ [key: number]: string }>({});
+  const [message, setMessage] = useState<string>('');
+  const [showRaccoon, setShowRaccoon] = useState(false);
+  const [showSquirrel, setShowSquirrel] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const { width, height } = useWindowSize();
 
-interface PuzzleData {
-  across: { [key: string]: { equation: string } };
-  down: { [key: string]: { equation: string } };
-}
-
-export default function Games5({ onBack, onComplete }: Games5Props) {
-  const puzzleData: PuzzleData = {
-    across: {
-      '1': { equation: '763 - 244 - 267' },
-      '3': { equation: '194 - 16 - 52 - 29' },
-      '8': { equation: '678 - 40 - 81' },
-      '10': { equation: '823 - 125 - 41 - 275' },
-      '11': { equation: '78 - 27 - 14' }
-    },
-    down: {
-      '2': { equation: '139 + 283 + 97' },
-      '4': { equation: '834 + 107 - 203' },
-      '5': { equation: '458 - 67 + 152' },
-      '6': { equation: '89 + 64 - 138' },
-      '7': { equation: '295 + 427 + 156' },
-      '9': { equation: '953 - 204 - 165 - 47' }
-    }
-  };
-
-  const gridCells: Cell[] = [
-    // Row 1
-    { id: 0, allowInput: true, refNumber: 1, answer: 2 },
-    { id: 1, allowInput: true, refNumber: 2, answer: 5 },
-    { id: 2, allowInput: true, answer: 2 },
-    { id: 3, allowInput: false },
-    { id: 4, allowInput: true, refNumber: 3, answer: 9 },
-    { id: 5, allowInput: true, refNumber: 4, answer: 7 },
-    // Row 2
-    { id: 6, allowInput: false },
-    { id: 7, allowInput: true, answer: 1 },
-    { id: 8, allowInput: false },
-    { id: 9, allowInput: false },
-    { id: 10, allowInput: false },
-    { id: 11, allowInput: true, answer: 3 },
-    // Row 3
-    { id: 12, allowInput: true, refNumber: 5, answer: 5 },
-    { id: 13, allowInput: true, answer: 9 },
-    { id: 14, allowInput: true, refNumber: 6, answer: 1 },
-    { id: 15, allowInput: false },
-    { id: 16, allowInput: true, refNumber: 7, answer: 8 },
-    { id: 17, allowInput: true, answer: 8 },
-    // Row 4
-    { id: 18, allowInput: true, answer: 4 },
-    { id: 19, allowInput: false },
-    { id: 20, allowInput: true, refNumber: 8, answer: 5 },
-    { id: 21, allowInput: true, refNumber: 9, answer: 5 },
-    { id: 22, allowInput: true, answer: 7 },
-    { id: 23, allowInput: false },
-    // Row 5
-    { id: 24, allowInput: true, answer: 3 },
-    { id: 25, allowInput: false },
-    { id: 26, allowInput: false },
-    { id: 27, allowInput: true, refNumber: 10, answer: 3 },
-    { id: 28, allowInput: true, answer: 8 },
-    { id: 29, allowInput: true, answer: 2 },
-    // Row 6
-    { id: 30, allowInput: false },
-    { id: 31, allowInput: false },
-    { id: 32, allowInput: true, refNumber: 11, answer: 3 },
-    { id: 33, allowInput: true, answer: 7 },
-    { id: 34, allowInput: false },
-    { id: 35, allowInput: false },
+  const mathProblems = [
+    { id: 1, problem: '763 - 244 - 267', answer: 252 }, // N
+    { id: 2, problem: '139 + 283 + 97', answer: 519 }, // U
+    { id: 3, problem: '194 - 16 - 52 - 29', answer: 97 }, // L
+    { id: 4, problem: '834 + 107 - 203', answer: 738 }, // O
+    { id: 5, problem: '458 - 67 + 152', answer: 543 }, // R
+    { id: 6, problem: '89 + 64 - 138', answer: 15 }, // E
+    { id: 7, problem: '295 + 427 + 156', answer: 878 }, // Q
+    { id: 8, problem: '678 - 40 - 81', answer: 557 }, // A
+    { id: 9, problem: '953 - 204 - 165 - 47', answer: 537 }, // I
+    { id: 10, problem: '823 - 125 - 41 - 275', answer: 382 }, // S
+    { id: 11, problem: '78 - 27 - 14', answer: 37 }, // C
   ];
 
-  const [userAnswers, setUserAnswers] = useState<{ [key: number]: string }>({});
-  const [gameComplete, setGameComplete] = useState(false);
-  const [message, setMessage] = useState<string>("");
-  const [highlightedClue, setHighlightedClue] = useState<string | null>(null);
-  const [incorrectCells, setIncorrectCells] = useState<Set<number>>(new Set());
-  const [emptyCells, setEmptyCells] = useState<Set<number>>(new Set());
-  const [correctCells, setCorrectCells] = useState<Set<number>>(new Set());
+  const letterCodes = {
+    252: 'N',
+    519: 'U',
+    97: 'L',
+    738: 'O',
+    543: 'R',
+    15: 'E',
+    878: 'Q',
+    557: 'A',
+    537: 'I',
+    382: 'S',
+    37: 'C',
+    // Distracting codes
+    123: 'B',
+    456: 'Y',
+    789: 'T',
+    321: 'G',
+    654: 'H',
+    987: 'M',
+    147: 'K',
+    258: 'W',
+    369: 'P'
+  };
 
-  const handleInputChange = (cellId: number, value: string) => {
-    if (value.length > 1) return;
-    if (value !== "" && !/^[0-9]$/.test(value)) return;
+  const firstWord = {
+    boxes: [
+      { id: 1, problemId: 5, correct: 'R' },
+      { id: 2, problemId: 8, correct: 'A' },
+      { id: 3, problemId: 11, correct: 'C' },
+      { id: 4, problemId: 11, correct: 'C' },
+      { id: 5, problemId: 4, correct: 'O' },
+      { id: 6, problemId: 4, correct: 'O' },
+      { id: 7, problemId: 1, correct: 'N' }
+    ]
+  };
 
-    setIncorrectCells(new Set());
-    setEmptyCells(new Set());
-    setCorrectCells(new Set());
+  const secondWord = {
+    boxes: [
+      { id: 8, problemId: 10, correct: 'S' },
+      { id: 9, problemId: 7, correct: 'Q' },
+      { id: 10, problemId: 2, correct: 'U' },
+      { id: 11, problemId: 9, correct: 'I' },
+      { id: 12, problemId: 5, correct: 'R' },
+      { id: 13, problemId: 5, correct: 'R' },
+      { id: 14, problemId: 6, correct: 'E' },
+      { id: 15, problemId: 3, correct: 'L' }
+    ]
+  };
 
-    setUserAnswers((prev) => ({
+  const handleLetterSelect = async (boxId: number, letter: string) => {
+    await onLogBehavior(
+      "games5",
+      "select",
+      `box:${boxId}`,
+      `letter:${letter}`
+    );
+
+    setSelectedLetters(prev => ({
       ...prev,
-      [cellId]: value,
+      [boxId]: letter
     }));
   };
 
-  const handleRefClick = (refNumber: number) => {
-    setHighlightedClue(refNumber.toString());
-  };
+  const checkAnswers = async () => {
+    let hasIncorrectAnswers = false;
+    
+    // Check if RACCOON is complete
+    const isRaccoonComplete = firstWord.boxes.every(
+      box => selectedLetters[box.id] === box.correct
+    );
 
-  const checkAnswers = () => {
-    let allCorrect = true;
-    const newIncorrectCells = new Set<number>();
-    const newEmptyCells = new Set<number>();
-    const newCorrectCells = new Set<number>();
+    // Check if SQUIRREL is complete
+    const isSquirrelComplete = secondWord.boxes.every(
+      box => selectedLetters[box.id] === box.correct
+    );
 
-    gridCells.forEach((cell) => {
-      if (cell.allowInput && cell.answer !== undefined) {
-        const userAnswer = userAnswers[cell.id];
-        
-        if (!userAnswer) {
-          newEmptyCells.add(cell.id);
-          allCorrect = false;
-        } else if (parseInt(userAnswer) !== cell.answer) {
-          newIncorrectCells.add(cell.id);
-          allCorrect = false;
-        } else {
-          newCorrectCells.add(cell.id);
-        }
+    await onLogBehavior(
+      "games5",
+      "check",
+      `raccoon:${isRaccoonComplete},squirrel:${isSquirrelComplete}`,
+      `answers:${JSON.stringify(selectedLetters)}`
+    );
+
+    // Check for incorrect answers
+    const allBoxes = [...firstWord.boxes, ...secondWord.boxes];
+    allBoxes.forEach(box => {
+      if (selectedLetters[box.id] && selectedLetters[box.id] !== box.correct) {
+        hasIncorrectAnswers = true;
       }
     });
 
-    setIncorrectCells(newIncorrectCells);
-    setEmptyCells(newEmptyCells);
-    setCorrectCells(newCorrectCells);
+    if (hasIncorrectAnswers) {
+      setMessage("Some answers are incorrect. Try again!");
+      return;
+    }
 
-    if (allCorrect) {
-      setMessage("Congratulations! You've completed the crossword!");
-      setGameComplete(true);
-    } else {
-      setMessage("Some answers are incorrect. Keep trying!");
+    if (isRaccoonComplete && !showRaccoon) {
+      setShowRaccoon(true);
+      setMessage("You found the first spy - RACCOON!");
+    }
+
+    if (isSquirrelComplete && !showSquirrel) {
+      setShowSquirrel(true);
+      setMessage("You found the second spy - SQUIRREL!");
+    }
+
+    if (isRaccoonComplete && isSquirrelComplete) {
+      await onLogBehavior(
+        "games5",
+        "complete",
+        "both-words-found",
+        "game-complete"
+      );
+      setShowConfetti(true);
+      setMessage("Congratulations! You've uncovered both spies—Raccoon and Squirrel—plotting against Grassland! Click 'Next' to continue.");
     }
   };
 
+  const handleReset = async () => {
+    await onLogBehavior(
+      "games5",
+      "click",
+      "reset-button",
+      "game-reset"
+    );
+    
+    setSelectedLetters({});
+    setMessage('');
+    setShowRaccoon(false);
+    setShowSquirrel(false);
+  };
+
   return (
-    <div className="min-h-screen flex flex-col items-center p-8">
+    <div className="min-h-screen flex flex-col items-center relative">
+      {/* Component container with background */}
+      <div 
+        className="w-full flex flex-col items-center relative"
+        style={{
+          backgroundImage: 'url(/img/game5-background.png)',
+          backgroundRepeat: 'repeat',
+          backgroundSize: 'auto'
+        }}
+      >
+        
+        {showConfetti && (
+          <ReactConfetti
+            width={width}
+            height={height}
+            recycle={false}
+            numberOfPieces={200}
+            gravity={0.2}
+            onConfettiComplete={() => setShowConfetti(false)}
+          />
+        )}
 
-      <div className="w-full max-w-4xl text-center">
-        <h1
-          className="text-6xl mb-6 font-bold text-[#13294B]"
-          style={{ fontFamily: "Chalkduster, fantasy" }}
-        >
-          MATH CROSSWORD!
-        </h1>
-
-        <p className="text-2xl mb-8 text-gray-600">
-          Solve the math crossword by filling in the answers. <br />
-          Click on the clue numbers to see the equations for the corresponding words!
-        </p>
-
-        <div className="flex justify-center gap-8 mb-8">
-          <div className="text-left bg-[#F2F9FF] p-6 rounded-lg shadow-md">
-            <h3 className="text-2xl font-bold mb-4 text-[#13294B]">Across:</h3>
-            {Object.entries(puzzleData.across).map(([num, { equation }]) => (
-              <div
-                key={`across-${num}`}
-                className={`text-xl mb-2 cursor-pointer ${
-                  highlightedClue === num ? "bg-[#6482AD] text-white font-bold px-2 rounded" : ""
-                }`}
-              >
-                {num}. {equation}
-              </div>
-            ))}
+        <div className="w-full max-w-4xl bg-white/90 p-8 rounded-lg shadow-lg relative z-10 mx-4">
+          {/* Top decorative frame */}
+          <div className="w-full relative z-10">
+            <img 
+              src="/img/game5-topleafs.png" 
+              alt="Decorative top frame"
+              className="w-full h-auto object-contain"
+            />
           </div>
-          <div className="text-left bg-[#F2F9FF] p-6 rounded-lg shadow-md">
-            <h3 className="text-2xl font-bold mb-4 text-[#13294B]">Down:</h3>
-            {Object.entries(puzzleData.down).map(([num, { equation }]) => (
-              <div
-                key={`down-${num}`}
-                className={`text-xl mb-2 cursor-pointer ${
-                  highlightedClue === num ? "bg-[#6482AD] text-white font-bold px-2 rounded" : ""
-                }`}
-              >
-                {num}. {equation}
-              </div>
-            ))}
-          </div>
-        </div>
+          
+          <h1 className="text-4xl font-bold text-center text-[#732002] mb-6">
+            The Grassland Mystery
+          </h1>
 
-        <div className="grid grid-cols-6 gap-1 max-w-[600px] mx-auto mb-6">
-          {gridCells.map((cell) => (
-            <div
-              key={cell.id}
-              className={`relative w-24 h-24 ${
-                cell.allowInput
-                  ? `bg-white border-2 border-gray-300 ${
-                      incorrectCells.has(cell.id)
-                        ? "bg-[#FFC5C5]"
-                        : emptyCells.has(cell.id)
-                        ? "bg-[#FFFED3]"
-                        : correctCells.has(cell.id)
-                        ? "bg-[#C3E2C2]"
-                        : ""
-                    }`
-                  : "bg-black"
+          <div className="bg-[#F2E8D5] p-4 rounded-lg mb-8 border-4 border-[#F2B60C] shadow-xl">
+            <p className="text-xl mb-2 font-medium text-black">
+              The peaceful Grassland has been attacked by the Forest Kingdom! A secret coded message
+              may reveal the identities of spies living among us. Solve the math problems to find the 
+              corresponding letters and unmask the infiltrators!
+            </p>
+          </div>
+
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-[#732002] mb-4">Math Problems</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {mathProblems.map((problem) => (
+                <div key={problem.id} 
+                  className="p-2 border-2 border-[#732002] rounded-lg bg-[#F8F8F8] hover:bg-[#F0F0F0] transition-colors">
+                  <span className="text-xl font-bold text-[#C38429]"> ({problem.id}):</span>
+                  <span className="ml-2 font-bold text-xl">{problem.problem}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-[#732002] mb-4">Secret Code Dictionary</h2>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              {Object.entries(letterCodes).map(([number, letter]) => (
+                <div key={number} 
+                  className="p-2 rounded-lg text-center font-bold transform hover:scale-105 transition-transform bg-[#F5A80F]"
+                >
+                  <span className="text-xl text-white">{number} = {letter}</span>
+                </div>
+              ))}
+            </div>
+            <p className="text-xl text-bold mt-8 text-[#732002] font-medium text-center">
+              Solve the math problems above and use this code dictionary to reveal the letters of each spy's name!
+            </p>
+          </div>
+
+          {/* First Word Section */}
+          <div className="mb-8 bg-[#F2E8D5] p-6 rounded-lg border-2 border-dashed border-[#732002]">
+            <h2 className="text-2xl font-bold text-[#732002] mb-4">First Spy</h2>
+            <div className="flex justify-center gap-4">
+              {firstWord.boxes.map((box) => (
+                <div key={box.id} className="relative">
+                  <select
+                    value={selectedLetters[box.id] || ''}
+                    onChange={(e) => handleLetterSelect(box.id, e.target.value)}
+                    className={`w-12 h-12 text-center text-xl border-2 border-[#452D0A] rounded-xl
+                      focus:ring-4 focus:ring-[#452D0A] focus:border-[#452D0A]
+                      ${selectedLetters[box.id] && selectedLetters[box.id] !== box.correct && message.includes('incorrect')
+                        ? 'bg-red-100 border-red-500'
+                        : ''
+                      }`}
+                  >
+                    <option value="">?</option>
+                    {Object.values(letterCodes)
+                      .sort()
+                      .map(letter => (
+                        <option key={letter} value={letter}>{letter}</option>
+                    ))}
+                  </select>
+                  <span className="absolute -top-6 left-1/2 transform -translate-x-1/2 
+                    text-sm font-bold bg-[#C38429] text-white px-2 py-1 rounded-full">
+                    ({box.problemId})
+                  </span>
+                </div>
+              ))}
+            </div>
+            {showRaccoon ? (
+              <motion.div
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="mt-4 flex flex-col items-center"
+              >
+                <img 
+                  src="/img/game5-raccoon.png" 
+                  alt="Raccoon" 
+                  className="w-56 h-auto object-contain"
+                />
+                <p className="mt-4 text-2xl font-bold text-[#C35800]-600">
+                  You found the first spy - RACCOON!
+                </p>
+              </motion.div>
+            ) : null}
+          </div>
+
+          {/* Second Word Section */}
+          <div className="mb-8 bg-[#F2E8D5] p-6 rounded-lg border-2 border-dashed border-[#732002]">
+            <h2 className="text-2xl font-bold text-[#732002] mb-4">Second Spy</h2>
+            <div className="flex justify-center gap-4 flex-wrap">
+              {secondWord.boxes.map((box) => (
+                <div key={box.id} className="relative">
+                  <select
+                    value={selectedLetters[box.id] || ''}
+                    onChange={(e) => handleLetterSelect(box.id, e.target.value)}
+                    className={`w-12 h-12 text-center text-xl border-2 border-[#452D0A] rounded-xl
+                      focus:ring-2 focus:ring-[#452D0A] focus:border-[#452D0A]
+                      ${selectedLetters[box.id] && selectedLetters[box.id] !== box.correct && message.includes('incorrect')
+                        ? 'bg-red-100 border-red-500'
+                        : ''
+                      }`}
+                  >
+                    <option value="">?</option>
+                    {Object.values(letterCodes)
+                      .sort()
+                      .map(letter => (
+                        <option key={letter} value={letter}>{letter}</option>
+                    ))}
+                  </select>
+                  <span className="absolute -top-6 left-1/2 transform -translate-x-1/2 
+                    text-sm font-bold bg-[#C38429] text-white px-2 py-1 rounded-full">
+                    ({box.problemId})
+                  </span>
+                </div>
+              ))}
+            </div>
+            {showSquirrel ? (
+              <motion.div
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="mt-4 flex flex-col items-center"
+              >
+                <img 
+                  src="/img/game5-squirrel.png" 
+                  alt="Squirrel" 
+                  className="w-48 h-auto object-contain"
+                />
+                <p className="mt-4 text-2xl font-bold text-[#C35800]-600">
+                  You found the second spy - SQUIRREL!
+                </p>
+              </motion.div>
+            ) : null}
+          </div>
+
+          {message && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={`mt-8 text-center text-xl font-bold p-4 rounded-lg ${
+                message.includes('Congratulations') 
+                  ? 'bg-green-100 text-green-600 border-2 border-green-600' 
+                  : 'bg-blue-100 text-blue-600 border-2 border-blue-600'
               }`}
             >
-              {cell.allowInput && (
-                <>
-                  {cell.refNumber && (
-                    <span
-                      onClick={() => handleRefClick(cell.refNumber!)}
-                      className="absolute top-1 left-1 text-lg font-bold bg-gray-200 px-1 rounded cursor-pointer"
-                    >
-                      {cell.refNumber}
-                    </span>
-                  )}
-                  <input
-                    type="text"
-                    maxLength={1}
-                    className="w-full h-full text-center text-4xl bg-transparent outline-none"
-                    value={userAnswers[cell.id] || ""}
-                    onChange={(e) => handleInputChange(cell.id, e.target.value)}
-                  />
-                </>
-              )}
-            </div>
-          ))}
+              {message}
+            </motion.div>
+          )}
+
+          <div className="flex justify-center gap-4 mt-8">
+            <button
+              onClick={handleReset}
+              className="bg-[#CC0001] text-white px-6 py-2 rounded-lg font-bold 
+                hover:bg-[#A30001] transition-colors"
+            >
+              Reset
+            </button>
+            <button
+              onClick={checkAnswers}
+              className="bg-[#FF5F05] text-white px-6 py-2 rounded-lg font-bold 
+                hover:bg-[#D94E04] transition-colors"
+            >
+              Check Answers
+            </button>
+            {showRaccoon && showSquirrel && (
+              <button
+                onClick={async () => {
+                  await onLogBehavior(
+                    "games5",
+                    "game-complete",
+                    "next-button-games5",
+                    "complete"
+                  );
+                  if (onComplete) {
+                    onComplete();
+                  }
+                }}
+                className="bg-[#13294B] text-white px-6 py-2 rounded-lg font-bold 
+                  hover:bg-[#0E1D35] transition-colors animate-bounce"
+              >
+                Next
+              </button>
+            )}
+          </div>
         </div>
-
-        <button
-          onClick={checkAnswers}
-          className="bg-[#987D9A] text-white px-6 py-2 rounded-lg text-xl mb-4"
-        >
-          Check Answers
-        </button>
-
-        {message && (
-          <div className="text-xl font-bold mb-6 text-[#13294B]">{message}</div>
-        )}
-
-        {gameComplete && (
-          <button
-            onClick={onComplete}
-            className="bg-[#FF5F05] text-2xl text-white px-6 py-2 rounded-lg"
-          >
-            NEXT
-          </button>
-        )}
+        {/* Bottom decorative frame */}
+      <div className="w-full relative z-10 mt-auto">
+        <img 
+          src="/img/game5-bottomforest.png" 
+          alt="Decorative bottom frame"
+          className="w-full h-auto object-contain"
+        />
+      </div>
       </div>
     </div>
   );

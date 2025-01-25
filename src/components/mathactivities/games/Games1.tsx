@@ -1,18 +1,23 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { motion, AnimatePresence } from 'framer-motion';
+import ReactConfetti from 'react-confetti';
+import useWindowSize from 'react-use/lib/useWindowSize';
 
 interface ActivityComponentProps {
   onBack: () => void;
   onComplete?: () => void;
-  savedAnswers?: number[];
+  savedAnswers: number[];
   onSaveAnswers: (answers: number[]) => void;
+  onLogBehavior: (location: string, behavior: string, input: string, result: string) => void;
 }
 
 export default function Games1({ 
   onBack, 
   onComplete, 
   savedAnswers = [],
-  onSaveAnswers 
+  onSaveAnswers,
+  onLogBehavior
 }: ActivityComponentProps) {
   const [selectedNumbers, setSelectedNumbers] = useState<number[]>(savedAnswers);
   const [mathProblems] = useState([
@@ -35,6 +40,9 @@ export default function Games1({
 
   const [message, setMessage] = useState<string>('');
   const [isComplete, setIsComplete] = useState<boolean>(false);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [showTreasure, setShowTreasure] = useState(false);
+  const { width, height } = useWindowSize();
 
   useEffect(() => {
     if (savedAnswers?.length === 3) {
@@ -43,15 +51,21 @@ export default function Games1({
     }
   }, []);
 
-  const handleIconClick = (value: number) => {
+  const handleIconClick = async (value: number) => {
     if (selectedNumbers.length < 3) {
       const newNumbers = [...selectedNumbers, value];
+      await onLogBehavior(
+        "games1",
+        "click",
+        `select-number:${value}`,
+        `selected-sequence:${newNumbers.join(',')}`
+      );
       setSelectedNumbers(newNumbers);
       onSaveAnswers(newNumbers);
     }
   };
 
-  const checkCode = (numbers: number[], isInitial: boolean = false) => {
+  const checkCode = async (numbers: number[], isInitial: boolean = false) => {
     const correctCode = [51, 94, 38];
     
     if (numbers.length !== 3) {
@@ -61,9 +75,20 @@ export default function Games1({
 
     const isCorrect = numbers.every((num, index) => num === correctCode[index]);
     
+    await onLogBehavior(
+      "games1",
+      "click",
+      `check-code:${numbers.join(',')}`,
+      isCorrect ? "correct" : "incorrect"
+    );
+
     if (isCorrect) {
-      setMessage('Congratulations! You unlocked the door! 🎉');
+      setMessage('Congratulations! You helped Doggie unlock the box! 🎉');
       setIsComplete(true);
+      setShowConfetti(true);
+      setTimeout(() => {
+        setShowTreasure(true);
+      }, 1000);
       if (onSaveAnswers) onSaveAnswers(numbers);
     } else {
       setMessage('Wrong code! Try again! 🔒');
@@ -73,17 +98,32 @@ export default function Games1({
     }
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (!isComplete) {
       alert("Please solve the problem correctly before moving on!");
       return;
     }
+
+    await onLogBehavior(
+      "games1",
+      "click",
+      "next-button-games1",
+      "complete"
+    );
+
     if (onComplete) {
       onComplete();
     }
   };
 
-  const handleReset = () => {
+  const handleReset = async () => {
+    await onLogBehavior(
+      "games1",
+      "click",
+      "reset-button",
+      "reset-game"
+    );
+    
     setSelectedNumbers([]);
     onSaveAnswers([]);
     setMessage('');
@@ -92,11 +132,22 @@ export default function Games1({
 
   return (
     <div className="min-h-screen flex flex-col items-center p-8">
+      {showConfetti && (
+        <ReactConfetti
+          width={width}
+          height={height}
+          recycle={false}
+          numberOfPieces={200}
+          gravity={0.2}
+          onConfettiComplete={() => setShowConfetti(false)}
+        />
+      )}
+
       <div className="w-full max-w-3xl relative">
         <img 
           src="/img/game1-doggiedecor.png" 
           alt="Decorative doggie" 
-          className="absolute -bottom-[0.5rem] -left-[3rem] w-[20rem] h-auto z-10"
+          className="absolute -bottom-[0.5rem] -left-[3rem] w-[15rem] h-auto z-10"
         />
         
         <div className="bg-white p-8 rounded-lg shadow-lg relative">
@@ -104,9 +155,11 @@ export default function Games1({
           <img src="/img/game1-doggieheader.png" alt="Help Doggie Unlock the Door" className="mx-auto mb-4" />
           </div>
 
-          <p className="text-xl mb-6 text-center text-black-700">
-            Doggie forgot the passcode to the house, but he left himself some helpful clues! 
-            Solve the following math problems to uncover the code for Doggie.
+          <p className="text-xl mb-6 text-black-700">
+            Doggie was roaming the backyard when he spotted something sparkling under a shady old tree—a mysterious box secured by a strange lock.
+            <br/>Curious and excited, he wagged his tail and gave the lock a quick sniff. 
+            <br/>"I wonder what's inside," Doggie thought. 
+            <br/>Now, it's up to you to help him crack the lock's secret code and uncover the surprise hidden within!
           </p>
 
           <div className="mb-8">
@@ -143,23 +196,69 @@ export default function Games1({
             ))}
           </div>
 
-          <div className="mb-6">
-            <h3 className="text-3xl text-center mb-6 font-bold text-[#2C3F70]">Selected Code</h3>
-            <div className="flex gap-4 justify-center">
-              {[0, 1, 2].map((index) => (
-                <div key={index} className="w-16 h-16 border-2 border-gray-300 rounded-lg flex items-center justify-center text-2xl">
-                  {selectedNumbers[index] || '?'}
-                </div>
-              ))}
-            </div>
+          <div className="relative mb-8 flex flex-col items-center">
+            <AnimatePresence>
+              {showTreasure && (
+                <motion.div
+                  initial={{ scale: 0, opacity: 0, y: 50 }}
+                  animate={{ scale: 1, opacity: 1, y: 0 }}
+                  exit={{ scale: 0, opacity: 0 }}
+                  transition={{ duration: 0.5, type: "spring" }}
+                  className="absolute z-50 transform -translate-y-full mb-4"
+                >
+                  <motion.div
+                    animate={{ 
+                      boxShadow: [
+                        "0 0 20px #ffd700",
+                        "0 0 60px #ffd700",
+                        "0 0 20px #ffd700"
+                      ]
+                    }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                    className="bg-yellow-100 p-8 rounded-lg text-center"
+                  >
+                    <img 
+                      src="/img/game1-goldenbone.png" 
+                      alt="Golden Bone" 
+                      className="w-40 h-auto mx-auto mb-4 object-contain"
+                    />
+                    <p className="text-2xl font-bold text-yellow-800">
+                      Wow! A Golden Bone!
+                    </p>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <motion.div
+              animate={isComplete ? {
+                boxShadow: [
+                  "0 0 10px rgba(255, 215, 0, 0.5)",
+                  "0 0 20px rgba(255, 215, 0, 0.7)",
+                  "0 0 10px rgba(255, 215, 0, 0.5)"
+                ]
+              } : {}}
+              transition={{ duration: 1.5, repeat: Infinity }}
+              className="flex justify-center"
+            >
+              <img 
+                src={isComplete ? "/img/game1-treasurebox-open.png" : "/img/game1-treasurebox-close.png"}
+                alt="Treasure Box" 
+                className="w-64 h-auto"
+              />
+            </motion.div>
           </div>
 
           {message && (
-            <div className={`mb-6 text-center text-lg ${
-              message.includes('Congratulations') ? 'text-green-600' : 'text-red-600'
-            }`}>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={`mb-6 text-center text-lg ${
+                message.includes('Congratulations') ? 'text-green-600' : 'text-red-600'
+              }`}
+            >
               {message}
-            </div>
+            </motion.div>
           )}
 
           <div className="flex justify-center gap-4">

@@ -198,6 +198,7 @@ export default function ActivitySelection() {
           completedSteps={selections.filter(Boolean).length}
           onStepClick={handleRevisit}
           selections={selections}
+          disabledSteps={selections.map((selection, index) => selection === null && index !== currentSet)}
         />
         {renderActivity(activeQuestion)}
       </div>
@@ -214,6 +215,7 @@ export default function ActivitySelection() {
         completedSteps={selections.filter(Boolean).length}
         onStepClick={handleRevisit}
         selections={selections}
+        disabledSteps={selections.map((selection, index) => selection === null && index !== currentSet)}
       />
 
       <div className="w-full max-w-3xl text-center mb-8">

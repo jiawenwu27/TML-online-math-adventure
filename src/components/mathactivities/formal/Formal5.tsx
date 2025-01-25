@@ -3,9 +3,18 @@ import { useState } from "react";
 interface ActivityComponentProps {
   onBack: () => void;
   onComplete?: () => void;
+  answers?: string[];
+  isCorrect?: (boolean | null)[];
+  onAnswersChange?: (answers: string[]) => void;
+  onCorrectChange?: (isCorrect: (boolean | null)[]) => void;
+  onLogBehavior: (location: string, behavior: string, input: string, result: string) => void;
 }
 
-export default function Formal5({ onBack, onComplete }: ActivityComponentProps) {
+export default function Formal5({ 
+  onBack, 
+  onComplete,
+  onLogBehavior 
+}: ActivityComponentProps) {
   const [answer, setAnswer] = useState("");
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
 
@@ -22,17 +31,33 @@ export default function Formal5({ onBack, onComplete }: ActivityComponentProps) 
     setAnswer(value);
   };
 
-  const checkAnswer = () => {
+  const checkAnswer = async () => {
     const userAnswer = parseInt(answer);
     const correct = userAnswer === correctAnswer;
+
+    await onLogBehavior(
+      "formal5-final",
+      "click",
+      `check-answer-button:${userAnswer}`,
+      correct ? "correct" : "incorrect"
+    );
+
     setIsCorrect(correct);
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (!isCorrect) {
       alert("Please solve the problem correctly before moving on!");
       return;
     }
+
+    await onLogBehavior(
+      "formal5",
+      "click",
+      "next-button-formal5",
+      "complete"
+    );
+    
     if (onComplete) {
       onComplete();
     }
@@ -92,8 +117,10 @@ export default function Formal5({ onBack, onComplete }: ActivityComponentProps) 
               type="number"
               value={answer}
               onChange={(e) => handleInputChange(e.target.value)}
+              onWheel={(e) => (e.target as HTMLInputElement).blur()}
               className="border-2 border-gray-300 rounded-lg px-4 py-2 text-xl mb-2"
               placeholder="Enter your answer"
+              style={{ WebkitAppearance: 'none', MozAppearance: 'textfield' }}
             />
             <button
               onClick={checkAnswer}
@@ -101,7 +128,7 @@ export default function Formal5({ onBack, onComplete }: ActivityComponentProps) 
             >
               Check Answer
             </button>
-            {isCorrect !== null && (
+            {isCorrect !== null && answer !== "" && (
               <div
                 className={`mt-2 text-lg ${
                   isCorrect ? "text-green-600" : "text-red-600"

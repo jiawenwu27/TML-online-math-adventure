@@ -5,7 +5,11 @@ import { useRouter, useSearchParams } from "next/navigation";
 import HoverBox from "@/components/HoverBox";
 import { generateClient } from 'aws-amplify/data';
 import type { Schema } from '../../../../amplify/data/resource';
+import { Amplify } from 'aws-amplify';
+import outputs from '../../../../amplify_outputs.json';
+
 const client = generateClient<Schema>();
+Amplify.configure(outputs);
 
 export default function BlueIntro() {
   return (
@@ -46,15 +50,19 @@ function BlueIntroContent() {
     }
   };
 
-  // Modified button click handler
+  // Modified button click handler with logging
   const handleStartClick = async () => {
-    await logBehavior(
-      "blue-intro-start-button",
-      "click",
-      "NA",
-      "redirect-to-blue-activities"
-    );
-    router.push("/intro/blue/activities");
+    try {
+      await logBehavior(
+        "blue-intro-start-button",
+        "click",
+        "NA",
+        "redirect-to-blue-activities"
+      );
+      router.push("/intro/blue/activities");
+    } catch (error) {
+      console.error("Error during navigation:", error);
+    }
   };
 
   // Function to determine which types of problems are in the sequence

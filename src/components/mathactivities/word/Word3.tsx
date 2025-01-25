@@ -7,21 +7,23 @@ interface ActivityComponentProps {
   isCorrect: (boolean | null)[];
   onAnswersChange: (answers: string[]) => void;
   onCorrectChange: (isCorrect: (boolean | null)[]) => void;
+  onLogBehavior: (location: string, behavior: string, input: string, result: string) => void;
 }
 
 export default function Word3({ 
   onBack, 
   onComplete,
-  answers,
-  isCorrect,
+  answers: propAnswers, 
+  isCorrect: propIsCorrect, 
   onAnswersChange,
-  onCorrectChange
+  onCorrectChange,
+  onLogBehavior
 }: ActivityComponentProps) {
   const questions = [
     {
       question: (
         <>
-          Emma is hosting a big picnic party in the park, and she’s buying snacks for her friends: She picks up 27 cookies for dessert. Next, she grabs 26 sandwiches for lunch. Then, she gets 41 juice boxes to keep everyone refreshed. Finally, she adds 39 apples for a healthy treat.{" "}
+          Emma is hosting a big picnic party in the park, and she's buying snacks for her friends: She picks up 27 cookies for dessert. Next, she grabs 26 sandwiches for lunch. Then, she gets 41 juice boxes to keep everyone refreshed. Finally, she adds 39 apples for a healthy treat.{" "}
           <b>How many snacks did Emma bring to her picnic in total?</b> Can you count them all before the picnic starts?
         </>
       ),
@@ -31,7 +33,7 @@ export default function Word3({
     {
       question: (
         <>
-          Sarah finds $145 in her treasure chest and decides to use it for a fun shopping spree! She spends $23 on a pirate’s map to find even more treasure. Then, she uses $57 to buy a shiny new telescope. Finally, she spends $46 on a magical compass.{" "}
+          Sarah finds $145 in her treasure chest and decides to use it for a fun shopping spree! She spends $23 on a pirate's map to find even more treasure. Then, she uses $57 to buy a shiny new telescope. Finally, she spends $46 on a magical compass.{" "}
           <b>How much treasure money does Sarah have left after her exciting adventure?</b> Can you figure it out before she sails away?
         </>
       ),
@@ -50,26 +52,45 @@ export default function Word3({
     },
   ];
 
+  // Initialize answers with empty strings and isCorrect with null if they're empty
+  const answers = propAnswers.length ? propAnswers : Array(questions.length).fill("");
+  const isCorrect = propIsCorrect.length ? propIsCorrect : Array(questions.length).fill(null);
+
   const handleInputChange = (index: number, value: string) => {
     const updatedAnswers = [...answers];
     updatedAnswers[index] = value;
     onAnswersChange(updatedAnswers);
   };
 
-  const checkAnswer = (index: number) => {
+  const checkAnswer = async (index: number) => {
     const userAnswer = parseInt(answers[index]);
     const correct = userAnswer === questions[index].correctAnswer;
+
+    await onLogBehavior(
+      `word3-question-${index + 1}`,
+      "click",
+      `check-answer-button:${userAnswer}`,
+      correct ? "correct" : "incorrect"
+    );
 
     const updatedIsCorrect = [...isCorrect];
     updatedIsCorrect[index] = correct;
     onCorrectChange(updatedIsCorrect);
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (isCorrect.some((result) => result !== true)) {
       alert("Please solve all the problems correctly before moving on!");
       return;
     }
+
+    await onLogBehavior(
+      "word3",
+      "click",
+      "next-button-word3",
+      "complete"
+    );
+    
     if (onComplete) {
       onComplete();
     }
@@ -92,12 +113,14 @@ export default function Word3({
                 />
               </div>
               <div className="flex items-center">
-                <input
+              <input
                   type="number"
                   value={answers[index]}
                   onChange={(e) => handleInputChange(index, e.target.value)}
+                  onWheel={(e) => (e.target as HTMLInputElement).blur()}
                   className="border-2 border-gray-300 rounded-lg px-4 py-2 text-xl mb-2"
                   placeholder="Enter your answer"
+                  style={{ WebkitAppearance: 'none', MozAppearance: 'textfield' }}
                 />
                 <button
                   onClick={() => checkAnswer(index)}

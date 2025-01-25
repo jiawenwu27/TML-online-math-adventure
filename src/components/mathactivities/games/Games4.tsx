@@ -38,13 +38,15 @@ interface Games4Props {
     currentList: number;
     gameComplete: boolean;
   }) => void;
+  onLogBehavior: (location: string, behavior: string, input: string, result: string) => void;
 }
 
 export default function Games4({ 
   onBack, 
   onComplete, 
   savedAnswers,
-  onSaveAnswers 
+  onSaveAnswers,
+  onLogBehavior
 }: Games4Props) {
   const [answers, setAnswers] = useState<Record<number, ListAnswers>>(
     savedAnswers?.answers ?? {}
@@ -103,10 +105,31 @@ export default function Games4({
     return items.reduce((sum, item) => sum + item.quantity * item.price, 0);
   };
 
-  const checkTotalAmount = () => {
+  const handleTotalAmountChange = async (value: string) => {
+    await onLogBehavior(
+      "games4",
+      "input",
+      `list:${currentList}-total:${value}`,
+      "total-amount-entered"
+    );
+    
+    setAnswers(prev => ({
+      ...prev,
+      [currentList]: { ...prev[currentList], totalAmount: value }
+    }));
+  };
+
+  const checkTotalAmount = async () => {
     const currentShoppingList = shoppingLists[currentList - 1];
     const correctTotal = calculateTotal(currentShoppingList.items);
     const currentAnswer = answers[currentList]?.totalAmount;
+
+    await onLogBehavior(
+      "games4",
+      "check",
+      `submitted:${currentAnswer}`,
+      `correct:${correctTotal}`
+    );
 
     if (parseInt(currentAnswer) === correctTotal) {
       setMessages(prev => ({...prev, total: "Correct! Now, let's check if there's enough budget."}));
@@ -213,12 +236,11 @@ export default function Games4({
             <input
               type="number"
               value={answers[currentList]?.totalAmount || ""}
-              onChange={(e) => setAnswers(prev => ({
-                ...prev,
-                [currentList]: { ...prev[currentList], totalAmount: e.target.value }
-              }))}
+              onChange={(e) => handleTotalAmountChange(e.target.value)}
+              onWheel={(e) => (e.target as HTMLInputElement).blur()}
               className="border-2 border-gray-300 rounded-lg px-4 py-2"
               placeholder="Enter amount"
+              style={{ WebkitAppearance: 'none', MozAppearance: 'textfield' }}
             />
             <button
               onClick={checkTotalAmount}
@@ -302,8 +324,10 @@ export default function Games4({
               ...prev,
               [currentList]: { ...prev[currentList], changeAmount: e.target.value }
             }))}
+            onWheel={(e) => (e.target as HTMLInputElement).blur()}
             className="border-2 border-gray-300 rounded-lg px-4 py-2 mr-4"
             placeholder="Enter change amount"
+            style={{ WebkitAppearance: 'none', MozAppearance: 'textfield' }}
           />
           <button
             onClick={checkChangeAmount}
@@ -354,7 +378,17 @@ export default function Games4({
         </button>
         {gameComplete ? (
           <button
-            onClick={onComplete}
+            onClick={async () => {
+              await onLogBehavior(
+                "games4",
+                "game-complete",
+                "next-button-games4",
+                "complete"
+              );
+              if (onComplete) {
+                onComplete();
+              }
+            }}
             className="bg-[#FF5F05] text-2xl text-white px-6 py-2 rounded-lg"
           >
             NEXT

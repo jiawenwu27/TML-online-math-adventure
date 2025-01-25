@@ -132,8 +132,8 @@ export default function Home() {
       {/* Introductory Section */}
       <div className="text-center mb-6">
         <p className="text-lg font-medium text-gray-700">
-          Hi there! Today, you’ll be solving fun math problems together with
-          your mom or dad. We’re excited to see how well you work as a team!
+          Hi there! Today, you'll be solving fun math problems together with
+          your mom or dad. We're excited to see how well you work as a team!
         </p>
       </div>
 
@@ -151,8 +151,8 @@ export default function Home() {
         </p>
         <p className="text-gray-700 text-sm">
           <em>
-            If you don’t remember the code, check the Zoom chat or your
-            mom/dad’s phone for a text message from the researcher.
+            If you don't remember the code, check the Zoom chat or your
+            mom/dad's phone for a text message from the researcher.
           </em>
         </p>
       </div>
@@ -169,7 +169,7 @@ export default function Home() {
           type="text"
           value={userID}
           onChange={handleUserIDInput}
-          placeholder="Enter User ID"
+          placeholder="Enter Participant ID"
           className="w-full p-3 mb-4 rounded-md border-2 border-[#003DA5] focus:outline-none focus:ring focus:ring-[#5178C9]"
         />
 

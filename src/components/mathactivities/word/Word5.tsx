@@ -3,13 +3,22 @@ import { useState } from "react";
 interface ActivityComponentProps {
   onBack: () => void;
   onComplete?: () => void;
+  answers: string[];
+  isCorrect: (boolean | null)[];
+  onAnswersChange: (answers: string[]) => void;
+  onCorrectChange: (isCorrect: (boolean | null)[]) => void;
+  onLogBehavior: (location: string, behavior: string, input: string, result: string) => void;
 }
 
-export default function Word5({ onBack, onComplete }: ActivityComponentProps) {
-  const [answers, setAnswers] = useState<string[]>(["", "", "", "", ""]);
-  const [incorrectIndices, setIncorrectIndices] = useState<number[]>([]);
-  const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
-
+export default function Word5({ 
+  onBack, 
+  onComplete, 
+  answers: propAnswers,
+  isCorrect: propIsCorrect,
+  onAnswersChange,
+  onCorrectChange,
+  onLogBehavior 
+}: ActivityComponentProps) {
   const story = {
     question: `One sunny day, Max, Ruby, Leo, and Mia went on a hot air balloon ride over the magical Land of Numbers. Suddenly, the worried Number King appeared. "Help! The mischievous dragon Minus Max has stolen our numbers! To save the kingdom, you must solve his math challenges." The friends eagerly agreed and set off.
 
@@ -24,26 +33,53 @@ The Number King had one final task: "With [___] numbers from the caves and [___]
     correctAnswers: ["810", "142", "810", "142", "424"],
   };
 
+  // Initialize answers with empty strings and isCorrect with null if they're empty
+  const answers = propAnswers.length ? propAnswers : Array(5).fill("");
+  const isCorrect = propIsCorrect.length ? propIsCorrect : Array(5).fill(null);
+
   const handleInput = (index: number, value: string) => {
     const newAnswers = [...answers];
     newAnswers[index] = value;
-    console.log("Input Updated:", index, value, newAnswers);
-    setAnswers(newAnswers);
-  };  
+    onAnswersChange(newAnswers);
+  };
 
-  const checkAnswers = () => {
+  const checkAnswers = async () => {
     const incorrect = answers.reduce<number[]>((acc, answer, index) => {
       if (answer !== story.correctAnswers[index]) {
-        acc.push(index); // Add index of incorrect answer
+        acc.push(index);
       }
       return acc;
     }, []);
-    console.log("Answers:", answers);
-    console.log("Incorrect Indices:", incorrect);
-    setIncorrectIndices(incorrect);
-    setIsCorrect(incorrect.length === 0); // True if all answers are correct
+
+    await onLogBehavior(
+      "word5-story",
+      "click",
+      `check-answers-button:${answers.join(',')}`,
+      incorrect.length === 0 ? "all-correct" : `incorrect-indices:${incorrect.join(',')}`
+    );
+
+    const newIsCorrect = answers.map((answer, index) => 
+      answer === story.correctAnswers[index]
+    );
+    onCorrectChange(newIsCorrect);
   };
-  
+
+  const handleComplete = async () => {
+    if (isCorrect.some(result => !result)) {
+      return;
+    }
+
+    await onLogBehavior(
+      "word5",
+      "click",
+      "next-button-word5",
+      "complete"
+    );
+
+    if (onComplete) {
+      onComplete();
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col items-center p-8 bg-[#FF5F05] rounded-lg">
@@ -75,13 +111,11 @@ The Number King had one final task: "With [___] numbers from the caves and [___]
               {story.question.split("\n\n").map((paragraph, i) => (
                 <p key={`paragraph-${i}`} className="relative z-10">
                   {paragraph.split("[___]").map((text, j, array) => {
-                    // Calculate the total blanks that came before this paragraph
                     const previousBlanks = story.question
                       .split("\n\n")
                       .slice(0, i)
                       .reduce((acc, para) => acc + (para.match(/\[___\]/g) || []).length, 0);
                     
-                    // Current blank index is previous blanks + current position
                     const currentIndex = previousBlanks + j;
 
                     return (
@@ -95,8 +129,10 @@ The Number King had one final task: "With [___] numbers from the caves and [___]
                               onChange={(e) =>
                                 handleInput(currentIndex, e.target.value)
                               }
+                              onWheel={(e) => (e.target as HTMLInputElement).blur()}
+                              style={{ WebkitAppearance: 'none', MozAppearance: 'textfield' }}
                               className={`w-24 mx-2 text-center border-2 rounded-md ${
-                                incorrectIndices.includes(currentIndex)
+                                !isCorrect[currentIndex] && answers[currentIndex] !== ""
                                   ? "border-red-500 bg-red-50"
                                   : "border-blue-400"
                               } focus:border-blue-600 outline-none`}
@@ -119,24 +155,24 @@ The Number King had one final task: "With [___] numbers from the caves and [___]
                 Check Answers
               </button>
 
-              {isCorrect && onComplete && (
+              {!isCorrect.includes(false) && isCorrect.includes(true) && onComplete && (
                 <button
-                  onClick={onComplete}
+                  onClick={handleComplete}
                   className="bg-[#FF5F05] text-white text-xl px-8 py-3 rounded-lg hover:bg-[#EE5500] transform transition hover:scale-105"
                 >
-                  All Done! Let’s Celebrate!
+                  All Done! Let's Celebrate!
                 </button>
               )}
             </div>
 
             {/* Feedback Message */}
-            {isCorrect !== null && (
+            {isCorrect.includes(true) && (
               <div
                 className={`mt-4 text-xl text-center ${
-                  isCorrect ? "text-green-600" : "text-red-600"
+                  !isCorrect.includes(false) ? "text-green-600" : "text-red-600"
                 }`}
               >
-                {isCorrect ? (
+                {!isCorrect.includes(false) ? (
                   <span>
                     <b className="text-green-700">Amazing!</b> You've saved the{" "}
                     <span className="text-yellow-500">Number Kingdom</span>! 🎉
