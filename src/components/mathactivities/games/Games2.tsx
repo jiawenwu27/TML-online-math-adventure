@@ -18,8 +18,28 @@ interface UserBehavior {
 interface ActivityComponentProps {
   onBack: () => void;
   onComplete?: () => void;
-  savedAnswers: number[][];
-  onSaveAnswers: (answers: number[][]) => void;
+  savedAnswers?: {
+    currentSquare: number | null;
+    question: string;
+    correctAnswer: number;
+    currentPlayer: 'parent' | 'child';
+    userInput: string;
+    board: Square[];
+    playerSymbol: 'cross' | 'circle' | null;
+    childSymbol: 'cross' | 'circle' | null;
+    gameComplete: boolean;
+  };
+  onSaveAnswers: (answers: {
+    currentSquare: number | null;
+    question: string;
+    correctAnswer: number;
+    currentPlayer: 'parent' | 'child';
+    userInput: string;
+    board: Square[];
+    playerSymbol: 'cross' | 'circle' | null;
+    childSymbol: 'cross' | 'circle' | null;
+    gameComplete: boolean;
+  }) => void;
   onTrackBehavior: (behavior: UserBehavior) => void;
 }
 
@@ -80,16 +100,24 @@ export default function Games2({
   };
 
   const [gameState, setGameState] = useState<GameState>(
-    convertArrayToGameState(savedAnswers.map(row => row.map(Number)))
+    convertArrayToGameState(Array(3).fill(Array(3).fill(0)))
   );
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (gameState.answer && !isNaN(parseInt(gameState.answer))) {
-      const arrayState = convertGameStateToArray(gameState);
-      console.log("arrayState", arrayState);
-      onSaveAnswers(arrayState);
+      onSaveAnswers({
+        currentSquare: gameState.selectedSquare,
+        question: gameState.board[gameState.selectedSquare || 0].question,
+        correctAnswer: gameState.board[gameState.selectedSquare || 0].answer,
+        currentPlayer: gameState.currentPlayer,
+        userInput: gameState.answer,
+        board: gameState.board,
+        playerSymbol: gameState.playerSymbol,
+        childSymbol: gameState.childSymbol,
+        gameComplete: gameState.gameComplete
+      });
     }
   }, [gameState.answer]);
 

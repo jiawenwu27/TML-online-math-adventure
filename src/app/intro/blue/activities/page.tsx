@@ -27,6 +27,21 @@ import Games3 from "@/components/mathactivities/games/Games3";
 import Games4 from "@/components/mathactivities/games/Games4";
 import Games5 from "@/components/mathactivities/games/Games5";
 
+interface Square {
+  value: string | null;
+  question: string;
+  answer: number;
+  attempted?: boolean;
+}
+
+interface ListAnswers {
+  totalAmount: string;
+  hasEnoughBudget: boolean | null;
+  changeAmount: string;
+  shopperRole: 'parent' | 'child' | null;
+  cashierRole: 'parent' | 'child' | null;
+}
+
 // Base props shared by all activities
 interface BaseActivityProps {
   onBack: () => void;
@@ -39,6 +54,7 @@ interface StandardActivityProps extends BaseActivityProps {
   isCorrect: (boolean | null)[];
   onAnswersChange: (answers: string[]) => void;
   onCorrectChange: (isCorrect: (boolean | null)[]) => void;
+  onLogBehavior: (location: string, behavior: string, input: string, result: string) => void;
 }
 
 // Specific Game Activity Props
@@ -149,11 +165,17 @@ Amplify.configure(outputs);
 
 // Add new interface for queue items
 interface QueueItem {
-  type: 'behavior' | 'answer';
+  type: 'behavior' | 'answer' | 'game-complete';  // Add all possible types
   data: UserBehavior | {
     answers: string[];
     activityType: string;
     setIndex: number;
+  } | {
+    location: string;
+    timestamp: string;
+    behavior: string;
+    input: string;
+    result: string;
   };
 }
 
@@ -229,11 +251,12 @@ export default function BlueActivities() {
 
   const handleActivityComplete = async () => {
     try {
+      const activityType = activitySequence[currentSet];
       await logBehavior(
-        `activity-${currentSet+1}-complete`,
+        `${activityType}-${currentSet + 1}-complete`,
         "click",
         "NA",
-        currentSet < 4 ? `from-${currentSet+1}-to-next-activity` : "redirect-to-final"
+        currentSet < 4 ? `from-${activityType}-${currentSet + 1}-to-next-activity` : "redirect-to-final"
       );
       
       if (currentSet < 4) {
@@ -250,11 +273,12 @@ export default function BlueActivities() {
   const handleRevisit = async (index: number) => {
     if (index <= currentSet) {
       try {
+        const activityType = activitySequence[index];
         await logBehavior(
           "progress-bar",
           "click",
-          `revisit-${index+1}`,
-          `moved-to-activity-${index+1}`
+          `revisit-${activityType}-${index + 1}`,
+          `moved-to-${activityType}-${index + 1}`
         );
         setCurrentSet(index);
       } catch (error) {
@@ -283,10 +307,10 @@ export default function BlueActivities() {
               timestamp: behavior.timestamp,
             });
           } else {
-            const answerData = item.data as { answers: string[], activityType: string, setIndex: number };
+            const answerData = item.data as { answers: string[], activityType: string, setIndex: number, location: string };
             response = await client.models.Storage.create({
               userId: userID,
-              location: `activity-${answerData.setIndex+1}`,
+              location: answerData.location,
               behavior: 'input' as any,
               input: JSON.stringify(answerData.answers),
               result: answerData.activityType,
@@ -328,10 +352,13 @@ export default function BlueActivities() {
     
     await new Promise<void>(resolve => {
       setDataQueue(prev => {
-        const newQueue = [...prev, { type: 'behavior', data: modifiedBehavior }];
-        resolve();
-        return newQueue;
+        const newItem: QueueItem = {
+          type: 'behavior',
+          data: modifiedBehavior
+        };
+        return [...prev, newItem];
       });
+      resolve();
     });
   };
 
@@ -339,13 +366,18 @@ export default function BlueActivities() {
   const handleAnswerChange = async (newAnswers: string[], activityType: string, setIndex: number) => {
     await new Promise<void>(resolve => {
       setDataQueue(prev => {
-        const newQueue = [...prev, {
+        const newItem: QueueItem = {
           type: 'answer',
-          data: { answers: newAnswers, activityType, setIndex }
-        }];
-        resolve();
-        return newQueue;
+          data: { 
+            answers: newAnswers, 
+            activityType, 
+            setIndex,
+            location: `${activityType}-${setIndex + 1}`
+          }
+        };
+        return [...prev, newItem];
       });
+      resolve();
     });
 
     if (activityType === "word") {
@@ -368,7 +400,7 @@ export default function BlueActivities() {
         JSON.stringify(answers),
         "game"
       );
-      console.log("answers", answers);
+      // console.log("answers", answers);
       const newGameAnswers = [...gameAnswers];
       newGameAnswers[setIndex] = answers;
       setGameAnswers(newGameAnswers);
@@ -413,6 +445,7 @@ export default function BlueActivities() {
           setFormalCorrect(newFormalCorrect);
         }
       }}
+      onLogBehavior={logBehavior}
     />;
   };
 
