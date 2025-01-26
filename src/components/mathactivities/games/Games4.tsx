@@ -23,22 +23,31 @@ interface ListAnswers {
   cashierRole: Role;
 }
 
-interface Games4Props {
+interface UserBehavior {
+  timestamp: string;
+  location: string;
+  behavior: string;
+  input: string;
+  result: string;
+}
+
+interface BaseActivityProps {
   onBack: () => void;
   onComplete?: () => void;
+}
+
+interface Games4Props extends BaseActivityProps {
   savedAnswers?: {
     answers: Record<number, ListAnswers>;
-    messages: Record<string, string>;
-    currentList: number;
     gameComplete: boolean;
+    currentList?: number;  // Make it optional in savedAnswers
+    messages?: Record<string, string>;  // Make it optional in savedAnswers
   };
   onSaveAnswers: (answers: {
     answers: Record<number, ListAnswers>;
-    messages: Record<string, string>;
-    currentList: number;
     gameComplete: boolean;
   }) => void;
-  onLogBehavior: (location: string, behavior: string, input: string, result: string) => void;
+  onTrackBehavior: (behavior: UserBehavior) => void;
 }
 
 export default function Games4({ 
@@ -46,7 +55,7 @@ export default function Games4({
   onComplete, 
   savedAnswers,
   onSaveAnswers,
-  onLogBehavior
+  onTrackBehavior
 }: Games4Props) {
   const [answers, setAnswers] = useState<Record<number, ListAnswers>>(
     savedAnswers?.answers ?? {}
@@ -63,13 +72,16 @@ export default function Games4({
 
   // Add this useEffect to save state when it changes
   useEffect(() => {
-    onSaveAnswers({
-      answers,
-      messages,
-      currentList,
-      gameComplete
-    });
-  }, [answers, messages, currentList, gameComplete]);
+    if (answers[currentList]) {
+      const { totalAmount, changeAmount } = answers[currentList];
+      if (totalAmount || changeAmount) {
+        onSaveAnswers({
+          answers,
+          gameComplete
+        });
+      }
+    }
+  }, [answers]);
 
   const shoppingLists: ShoppingList[] = [
     {
@@ -105,9 +117,18 @@ export default function Games4({
     return items.reduce((sum, item) => sum + item.quantity * item.price, 0);
   };
 
+  const trackBehavior = (behavior: string, input: string, result: string) => {
+    onTrackBehavior({
+      timestamp: new Date().toISOString(),
+      location: "",
+      behavior,
+      input,
+      result
+    });
+  };
+
   const handleTotalAmountChange = async (value: string) => {
-    await onLogBehavior(
-      "games4",
+    trackBehavior(
       "input",
       `list:${currentList}-total:${value}`,
       "total-amount-entered"
@@ -119,14 +140,20 @@ export default function Games4({
     }));
   };
 
+  const handleChangeAmountChange = (value: string) => {
+    setAnswers(prev => ({
+      ...prev,
+      [currentList]: { ...prev[currentList], changeAmount: value }
+    }));
+  };
+
   const checkTotalAmount = async () => {
     const currentShoppingList = shoppingLists[currentList - 1];
     const correctTotal = calculateTotal(currentShoppingList.items);
     const currentAnswer = answers[currentList]?.totalAmount;
 
-    await onLogBehavior(
-      "games4",
-      "check",
+    trackBehavior(
+      "click",
       `submitted:${currentAnswer}`,
       `correct:${correctTotal}`
     );
@@ -185,6 +212,18 @@ export default function Games4({
     setMessages({});
   };
 
+  const handleRoleSelect = async (role: Role, type: 'shopper' | 'cashier') => {
+    trackBehavior(
+      "select",
+      `${type}-role`,
+      role
+    );
+    setAnswers(prev => ({
+      ...prev,
+      [currentList]: { ...prev[currentList], [type === 'shopper' ? 'shopperRole' : 'cashierRole']: role }
+    }));
+  };
+
   const renderContent = () => {
     const currentShoppingList = shoppingLists[currentList - 1];
 
@@ -211,10 +250,7 @@ export default function Games4({
             {["parent", "child"].map((role) => (
               <button
                 key={role}
-                onClick={() => setAnswers(prev => ({
-                  ...prev,
-                  [currentList]: { ...prev[currentList], shopperRole: role as Role }
-                }))}
+                onClick={() => handleRoleSelect(role as Role, 'shopper')}
                 className={`flex flex-col items-center ${
                   answers[currentList]?.shopperRole === role ? "ring-4 ring-[#FF5F05] rounded-lg" : ""
                 }`}
@@ -294,10 +330,7 @@ export default function Games4({
             {["parent", "child"].map((role) => (
               <button
                 key={role}
-                onClick={() => setAnswers(prev => ({
-                  ...prev,
-                  [currentList]: { ...prev[currentList], cashierRole: role as Role }
-                }))}
+                onClick={() => handleRoleSelect(role as Role, 'cashier')}
                 className={`flex flex-col items-center ${
                   answers[currentList]?.cashierRole === role ? "ring-4 ring-[#FF5F05] rounded-lg" : ""
                 }`}
@@ -320,10 +353,7 @@ export default function Games4({
           <input
             type="number"
             value={answers[currentList]?.changeAmount || ""}
-            onChange={(e) => setAnswers(prev => ({
-              ...prev,
-              [currentList]: { ...prev[currentList], changeAmount: e.target.value }
-            }))}
+            onChange={(e) => handleChangeAmountChange(e.target.value)}
             onWheel={(e) => (e.target as HTMLInputElement).blur()}
             className="border-2 border-gray-300 rounded-lg px-4 py-2 mr-4"
             placeholder="Enter change amount"
@@ -379,8 +409,7 @@ export default function Games4({
         {gameComplete ? (
           <button
             onClick={async () => {
-              await onLogBehavior(
-                "games4",
+              trackBehavior(
                 "game-complete",
                 "next-button-games4",
                 "complete"

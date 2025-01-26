@@ -31,7 +31,6 @@ import Games5 from "@/components/mathactivities/games/Games5";
 interface BaseActivityProps {
   onBack: () => void;
   onComplete?: () => void;
-  onLogBehavior: (location: string, behavior: string, input: string, result: string) => void;
 }
 
 // Props for standard activities (Formal and Word)
@@ -46,6 +45,7 @@ interface StandardActivityProps extends BaseActivityProps {
 interface Games1Props extends BaseActivityProps {
   savedAnswers: number[];
   onSaveAnswers: (answers: number[]) => void;
+  onTrackBehavior: (behavior: UserBehavior) => void;
 }
 
 interface Games2Props extends BaseActivityProps {
@@ -71,6 +71,7 @@ interface Games2Props extends BaseActivityProps {
     childSymbol: 'cross' | 'circle' | null;
     gameComplete: boolean;
   }) => void;
+  onTrackBehavior: (behavior: UserBehavior) => void;
 }
 
 interface Games3Props extends BaseActivityProps {
@@ -86,26 +87,42 @@ interface Games3Props extends BaseActivityProps {
     currentCell: number;
     isComplete: boolean;
   }) => void;
+  onTrackBehavior: (behavior: UserBehavior) => void;
 }
 
 interface Games4Props extends BaseActivityProps {
   savedAnswers?: {
     answers: Record<number, ListAnswers>;
-    messages: Record<string, string>;
-    currentList: number;
     gameComplete: boolean;
+    currentList?: number;
+    messages?: Record<string, string>;
   };
   onSaveAnswers: (answers: {
     answers: Record<number, ListAnswers>;
-    messages: Record<string, string>;
-    currentList: number;
     gameComplete: boolean;
   }) => void;
+  onTrackBehavior: (behavior: UserBehavior) => void;
 }
 
 interface Games5Props extends BaseActivityProps {
-  savedAnswers: number[];
-  onSaveAnswers: (answers: number[]) => void;
+  savedAnswers?: {
+    selectedLetters: (string | null)[];
+    gameComplete: boolean;
+  };
+  onSaveAnswers: (answers: {
+    selectedLetters: (string | null)[];
+    gameComplete: boolean;
+  }) => void;
+  onTrackBehavior: (behavior: UserBehavior) => void;
+}
+
+// Add this interface after other interfaces
+interface UserBehavior {
+  timestamp: string;
+  location: string;
+  behavior: string;
+  input: string;
+  result: string;
 }
 
 // Type definitions for components
@@ -129,6 +146,16 @@ const gameComponents = [
 
 const client = generateClient<Schema>();
 Amplify.configure(outputs);
+
+// Add new interface for queue items
+interface QueueItem {
+  type: 'behavior' | 'answer';
+  data: UserBehavior | {
+    answers: string[];
+    activityType: string;
+    setIndex: number;
+  };
+}
 
 export default function BlueActivities() {
   const router = useRouter();
@@ -161,6 +188,14 @@ export default function BlueActivities() {
   const [formalAnswers, setFormalAnswers] = useState<Record<number, string[]>>({});
   const [formalCorrect, setFormalCorrect] = useState<Record<number, (boolean | null)[]>>({});
   const [gameAnswers, setGameAnswers] = useState<any[]>(Array(5).fill(null));
+
+  // Add this state with your other states
+  const [userBehaviors, setUserBehaviors] = useState<UserBehavior[]>([]);
+
+  // Add these states at the top of the component
+  const [dataQueue, setDataQueue] = useState<QueueItem[]>([]);
+  const [isProcessing, setIsProcessing] = useState(false);
+  console.log("dataQueue", dataQueue);
 
   // Convert order string into activity sequence
   const activitySequence = order.split("").map((num) => {
@@ -228,38 +263,112 @@ export default function BlueActivities() {
     }
   };
 
-  const handleAnswerChange = async (newAnswers: string[], activityType: string, setIndex: number) => {
-    try {
-      await logBehavior(
-        `activity-${setIndex+1}`,
-        "input",
-        JSON.stringify(newAnswers),
-        activityType
-      );
+  // Process queue whenever a new item is added
+  useEffect(() => {
+    const processQueueItem = async () => {
+      if (dataQueue.length > 0 && !isProcessing) {
+        setIsProcessing(true);
+        const item = dataQueue[0];
+        let response = null;
 
-      if (activityType === "word") {
-        const newWordAnswers = { ...wordAnswers };
-        newWordAnswers[setIndex] = newAnswers;
-        setWordAnswers(newWordAnswers);
-      } else {
-        const newFormalAnswers = { ...formalAnswers };
-        newFormalAnswers[setIndex] = newAnswers;
-        setFormalAnswers(newFormalAnswers);
+        try {
+          if (item.type === 'behavior') {
+            const behavior = item.data as UserBehavior;
+            response = await client.models.Storage.create({
+              userId: userID,
+              location: behavior.location,
+              behavior: behavior.behavior as any,
+              input: behavior.input,
+              result: behavior.result,
+              timestamp: behavior.timestamp,
+            });
+          } else {
+            const answerData = item.data as { answers: string[], activityType: string, setIndex: number };
+            response = await client.models.Storage.create({
+              userId: userID,
+              location: `activity-${answerData.setIndex+1}`,
+              behavior: 'input' as any,
+              input: JSON.stringify(answerData.answers),
+              result: answerData.activityType,
+              timestamp: new Date().toISOString(),
+            });
+          }
+
+          // Only remove from queue if we got a response from DynamoDB
+          if (response) {
+            console.log("Successfully saved to DynamoDB:", response);
+            setDataQueue(prev => prev.slice(1));
+          } else {
+            throw new Error("No response from DynamoDB");
+          }
+
+        } catch (error) {
+          console.error("Error saving to DynamoDB:", error);
+          // Store failed item in localStorage
+          const failedItems = JSON.parse(localStorage.getItem('failedQueueItems') || '[]');
+          failedItems.push(item);
+          localStorage.setItem('failedQueueItems', JSON.stringify(failedItems));
+        } finally {
+          setIsProcessing(false);
+        }
       }
-    } catch (error) {
-      console.error("Error logging answer change:", error);
+    };
+
+    processQueueItem();
+  }, [dataQueue, isProcessing, userID]);
+
+  // Modified handleBehaviorTracking to wait for queue update
+  const handleBehaviorTracking = async (behavior: UserBehavior, setIndex: number) => {
+    const activityType = activitySequence[setIndex];
+    const location = `${activityType}-${setIndex + 1}`;
+    const modifiedBehavior = {
+      ...behavior,
+      location
+    };
+    
+    await new Promise<void>(resolve => {
+      setDataQueue(prev => {
+        const newQueue = [...prev, { type: 'behavior', data: modifiedBehavior }];
+        resolve();
+        return newQueue;
+      });
+    });
+  };
+
+  // Modified handleAnswerChange to wait for queue update
+  const handleAnswerChange = async (newAnswers: string[], activityType: string, setIndex: number) => {
+    await new Promise<void>(resolve => {
+      setDataQueue(prev => {
+        const newQueue = [...prev, {
+          type: 'answer',
+          data: { answers: newAnswers, activityType, setIndex }
+        }];
+        resolve();
+        return newQueue;
+      });
+    });
+
+    if (activityType === "word") {
+      const newWordAnswers = { ...wordAnswers };
+      newWordAnswers[setIndex] = newAnswers;
+      setWordAnswers(newWordAnswers);
+    } else {
+      const newFormalAnswers = { ...formalAnswers };
+      newFormalAnswers[setIndex] = newAnswers;
+      setFormalAnswers(newFormalAnswers);
     }
   };
 
   const handleGameAnswerSave = async (answers: any, setIndex: number) => {
     try {
+      const activityType = activitySequence[setIndex];
       await logBehavior(
-        `activity-${setIndex+1}`,
+        `${activityType}-${setIndex + 1}`,
         "input",
         JSON.stringify(answers),
         "game"
       );
-
+      console.log("answers", answers);
       const newGameAnswers = [...gameAnswers];
       newGameAnswers[setIndex] = answers;
       setGameAnswers(newGameAnswers);
@@ -278,7 +387,7 @@ export default function BlueActivities() {
         onComplete={handleActivityComplete}
         savedAnswers={gameAnswers[setIndex] || []}
         onSaveAnswers={(answers: any) => handleGameAnswerSave(answers, setIndex)}
-        onLogBehavior={logBehavior}
+        onTrackBehavior={(behavior: UserBehavior) => handleBehaviorTracking(behavior, setIndex)}
       />;
     }
 
@@ -304,7 +413,6 @@ export default function BlueActivities() {
           setFormalCorrect(newFormalCorrect);
         }
       }}
-      onLogBehavior={logBehavior}
     />;
   };
 

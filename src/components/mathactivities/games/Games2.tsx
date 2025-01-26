@@ -7,12 +7,20 @@ interface Square {
   attempted?: boolean;
 }
 
+interface UserBehavior {
+  timestamp: string;
+  location: string;
+  behavior: string;
+  input: string;
+  result: string;
+}
+
 interface ActivityComponentProps {
   onBack: () => void;
   onComplete?: () => void;
-  savedAnswers: number[];
-  onSaveAnswers: (answers: number[]) => void;
-  onLogBehavior: (location: string, behavior: string, input: string, result: string) => void;
+  savedAnswers: number[][];
+  onSaveAnswers: (answers: number[][]) => void;
+  onTrackBehavior: (behavior: UserBehavior) => void;
 }
 
 interface GameState {
@@ -24,6 +32,7 @@ interface GameState {
   answer: string;
   message: string;
   gameComplete: boolean;
+  userInputs: (number | null)[][];
 }
 
 export default function Games2({ 
@@ -31,7 +40,7 @@ export default function Games2({
   onComplete, 
   savedAnswers, 
   onSaveAnswers,
-  onLogBehavior
+  onTrackBehavior
 }: ActivityComponentProps) {
   const initialBoard: Square[] = [
     { value: null, question: '58 - 29 = ?', answer: 29 },
@@ -45,7 +54,7 @@ export default function Games2({
     { value: null, question: '25 + 35 + 48 = ?', answer: 108 }
   ];
 
-  const convertArrayToGameState = (answers: number[]): GameState => {
+  const convertArrayToGameState = (answers: number[][]): GameState => {
     const defaultState: GameState = {
       board: initialBoard,
       playerSymbol: null,
@@ -54,48 +63,38 @@ export default function Games2({
       selectedSquare: null,
       answer: '',
       message: '',
-      gameComplete: false
+      gameComplete: false,
+      userInputs: Array(3).fill(null).map(() => Array(3).fill(null))
     };
 
     if (!answers || answers.length === 0) return defaultState;
 
     return {
-      playerSymbol: answers[0] === 1 ? 'cross' : 'circle',
-      childSymbol: answers[0] === 1 ? 'circle' : 'cross',
-      currentPlayer: answers[1] === 1 ? 'parent' : 'child',
-      board: initialBoard.map((square, index) => ({
-        ...square,
-        value: answers[index + 2] === 0 ? null : 
-               answers[index + 2] === 1 ? 'cross' : 'circle'
-      })),
-      selectedSquare: null,
-      answer: '',
-      message: '',
-      gameComplete: answers.slice(2).some(val => val !== 0)
+      ...defaultState,
+      userInputs: answers
     };
   };
 
-  const convertGameStateToArray = (state: GameState): number[] => {
-    return [
-      state.playerSymbol === 'cross' ? 1 : 2,
-      state.currentPlayer === 'parent' ? 1 : 2,
-      ...state.board.map(square => 
-        square.value === null ? 0 : 
-        square.value === 'cross' ? 1 : 2
-      )
-    ];
+  const convertGameStateToArray = (state: GameState): number[][] => {
+    return state.userInputs.map(row => row.map(input => input ?? 0));
   };
 
   const [gameState, setGameState] = useState<GameState>(
-    convertArrayToGameState(savedAnswers)
+    convertArrayToGameState(savedAnswers.map(row => row.map(Number)))
   );
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   useEffect(() => {
-    const arrayState = convertGameStateToArray(gameState);
-    onSaveAnswers(arrayState);
-  }, [gameState]);
+    if (gameState.answer && !isNaN(parseInt(gameState.answer))) {
+      const arrayState = convertGameStateToArray(gameState);
+      console.log("arrayState", arrayState);
+      onSaveAnswers(arrayState);
+    }
+  }, [gameState.answer]);
 
   const updateGameState = (updates: Partial<GameState>) => {
+   
     setGameState(current => ({
       ...current,
       ...updates
@@ -121,11 +120,21 @@ export default function Games2({
     return null;
   };
 
+  const trackBehavior = (behavior: string, input: string, result: string) => {
+    onTrackBehavior({
+      timestamp: new Date().toISOString(),
+      location: "",
+      behavior,
+      input,
+      result
+    });
+  };
+
   const handleSquareClick = async (index: number) => {
-    if (gameState.board[index].value || gameState.gameComplete) return;
     
-    await onLogBehavior(
-      "games2",
+    if (gameState.board[index].value || gameState.gameComplete) return;
+
+    trackBehavior(
       "click",
       `select-square:${index}`,
       `question:${gameState.board[index].question}`
@@ -140,65 +149,75 @@ export default function Games2({
 
   const handleAnswerSubmit = async () => {
     if (gameState.selectedSquare === null) return;
+    
+    setIsSubmitting(true);
+    try {
+      const currentSquare = gameState.board[gameState.selectedSquare];
+      const userAnswer = parseInt(gameState.answer);
+      const isCorrect = userAnswer === currentSquare.answer;
+      
+      const row = Math.floor(gameState.selectedSquare / 3);
+      const col = gameState.selectedSquare % 3;
+      
+      const newUserInputs = gameState.userInputs.map(r => [...r]);
+      newUserInputs[row][col] = userAnswer;
 
-    const currentSquare = gameState.board[gameState.selectedSquare];
-    const userAnswer = parseInt(gameState.answer);
-    const isCorrect = userAnswer === currentSquare.answer;
+      trackBehavior(
+        "click",
+        `submit-answer:square-${gameState.selectedSquare}:${userAnswer}`,
+        `${isCorrect ? "correct" : "incorrect"}:player-${gameState.currentPlayer}:inputs-${JSON.stringify(newUserInputs)}`
+      );
 
-    await onLogBehavior(
-      "games2",
-      "click",
-      `submit-answer:square-${gameState.selectedSquare}:${userAnswer}`,
-      `${isCorrect ? "correct" : "incorrect"}:player-${gameState.currentPlayer}`
-    );
+      if (isCorrect) {
+        const newBoard = [...gameState.board];
+        newBoard[gameState.selectedSquare] = {
+          ...currentSquare,
+          value: gameState.currentPlayer === 'parent' ? gameState.playerSymbol : gameState.childSymbol,
+          attempted: true
+        };
 
-    if (isCorrect) {
-      const newBoard = [...gameState.board];
-      newBoard[gameState.selectedSquare] = {
-        ...currentSquare,
-        value: gameState.currentPlayer === 'parent' ? gameState.playerSymbol : gameState.childSymbol,
-        attempted: true
-      };
-      updateGameState({
-        board: newBoard,
-        gameComplete: false
-      });
+        const winner = checkWinner(newBoard);
+        if (winner) {
+          const winMessage = `${gameState.currentPlayer === 'parent' ? 'Parent' : 'Child'}! High Five! You're the Tic Tac Toe Champion!`;
+          updateGameState({
+            board: newBoard,
+            message: winMessage,
+            gameComplete: true,
+            selectedSquare: null,
+            answer: '',
+            userInputs: newUserInputs
+          });
 
-      const winner = checkWinner(newBoard);
-      if (winner) {
-        const winMessage = `${gameState.currentPlayer === 'parent' ? 'Parent' : 'Child'}! High Five! You're the Tic Tac Toe Champion!`;
-        updateGameState({
-          message: winMessage,
-          gameComplete: true
-        });
-        await onLogBehavior(
-          "games2",
-          "game-complete",
-          `winner:${gameState.currentPlayer}`,
-          winMessage
-        );
+          trackBehavior(
+            "game-complete",
+            `winner:${gameState.currentPlayer}`,
+            winMessage
+          );
+        } else {
+          updateGameState({
+            board: newBoard,
+            currentPlayer: gameState.currentPlayer === 'parent' ? 'child' : 'parent',
+            selectedSquare: null,
+            answer: '',
+            userInputs: newUserInputs
+          });
+        }
       } else {
         updateGameState({
-          currentPlayer: gameState.currentPlayer === 'parent' ? 'child' : 'parent'
+          // userInputs: newUserInputs,
+          message: 'Wrong answer! Turn goes to the other player.',
+          currentPlayer: gameState.currentPlayer === 'parent' ? 'child' : 'parent',
+          selectedSquare: null,
+          answer: ''
         });
       }
-    } else {
-      updateGameState({
-        message: 'Wrong answer! Turn goes to the other player.'
-      });
-      updateGameState({
-        currentPlayer: gameState.currentPlayer === 'parent' ? 'child' : 'parent'
-      });
+    } finally {
+      setIsSubmitting(false);
     }
-    updateGameState({
-      selectedSquare: null,
-      answer: ''
-    });
   };
 
   const handleSymbolSelect = async (playerChoice: 'cross' | 'circle') => {
-    await onLogBehavior(
-      "games2",
+    trackBehavior(
       "click",
       `select-symbol:${playerChoice}`,
       `child-selected:${playerChoice}`
@@ -317,7 +336,19 @@ export default function Games2({
             <input
               type="number"
               value={gameState.answer}
-              onChange={(e) => updateGameState({ answer: e.target.value })}
+              onChange={(e) => {
+                if (isSubmitting) return;
+
+                const row = Math.floor(gameState.selectedSquare! / 3);
+                const col = gameState.selectedSquare! % 3;
+                const newUserInputs = gameState.userInputs.map(r => [...r]);
+                newUserInputs[row][col] = e.target.value ? parseInt(e.target.value) : null;
+                
+                updateGameState({ 
+                  answer: e.target.value,
+                  userInputs: newUserInputs 
+                });
+              }}
               onWheel={(e) => (e.target as HTMLInputElement).blur()}
               className="border-2 border-gray-300 rounded-lg px-4 py-2 mr-4"
               placeholder="Enter your answer"
@@ -337,8 +368,7 @@ export default function Games2({
         {gameState.gameComplete && (
           <button
             onClick={async () => {
-              await onLogBehavior(
-                "games2",
+              trackBehavior(
                 "game-complete",
                 "next-button-games2",
                 "complete"

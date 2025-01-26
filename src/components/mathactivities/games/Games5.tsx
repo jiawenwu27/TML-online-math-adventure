@@ -1,24 +1,46 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactConfetti from 'react-confetti';
 import useWindowSize from 'react-use/lib/useWindowSize';
 
+interface UserBehavior {
+  timestamp: string;
+  location: string;
+  behavior: string;
+  input: string;
+  result: string;
+}
+
 interface ActivityComponentProps {
   onBack: () => void;
   onComplete?: () => void;
-  savedAnswers?: number[];
-  onSaveAnswers: (answers: number[]) => void;
-  onLogBehavior: (location: string, behavior: string, input: string, result: string) => void;
+  savedAnswers?: {
+    selectedLetters: (string | null)[];
+    gameComplete: boolean;
+  };
+  onSaveAnswers: (answers: {
+    selectedLetters: (string | null)[];
+    gameComplete: boolean;
+  }) => void;
+  onTrackBehavior: (behavior: UserBehavior) => void;
 }
 
 export default function Games5({
   onBack,
   onComplete,
-  savedAnswers = [],
+  savedAnswers,
   onSaveAnswers,
-  onLogBehavior
+  onTrackBehavior
 }: ActivityComponentProps) {
-  const [selectedLetters, setSelectedLetters] = useState<{ [key: number]: string }>({});
+  const [selectedLetters, setSelectedLetters] = useState<{ [key: number]: string }>(() => {
+    if (!savedAnswers?.selectedLetters) return {};
+    
+    return savedAnswers.selectedLetters.reduce((acc, letter, index) => {
+      if (letter) acc[index + 1] = letter;
+      return acc;
+    }, {} as { [key: number]: string });
+  });
+  const [gameComplete, setGameComplete] = useState<boolean>(savedAnswers?.gameComplete ?? false);
   const [message, setMessage] = useState<string>('');
   const [showRaccoon, setShowRaccoon] = useState(false);
   const [showSquirrel, setShowSquirrel] = useState(false);
@@ -88,9 +110,18 @@ export default function Games5({
     ]
   };
 
+  const trackBehavior = (behavior: string, input: string, result: string) => {
+    onTrackBehavior({
+      timestamp: new Date().toISOString(),
+      location: "",
+      behavior,
+      input,
+      result
+    });
+  };
+
   const handleLetterSelect = async (boxId: number, letter: string) => {
-    await onLogBehavior(
-      "games5",
+    trackBehavior(
       "select",
       `box:${boxId}`,
       `letter:${letter}`
@@ -115,8 +146,7 @@ export default function Games5({
       box => selectedLetters[box.id] === box.correct
     );
 
-    await onLogBehavior(
-      "games5",
+    trackBehavior(
       "check",
       `raccoon:${isRaccoonComplete},squirrel:${isSquirrelComplete}`,
       `answers:${JSON.stringify(selectedLetters)}`
@@ -146,8 +176,7 @@ export default function Games5({
     }
 
     if (isRaccoonComplete && isSquirrelComplete) {
-      await onLogBehavior(
-        "games5",
+      trackBehavior(
         "complete",
         "both-words-found",
         "game-complete"
@@ -158,8 +187,7 @@ export default function Games5({
   };
 
   const handleReset = async () => {
-    await onLogBehavior(
-      "games5",
+    trackBehavior(
       "click",
       "reset-button",
       "game-reset"
@@ -170,6 +198,18 @@ export default function Games5({
     setShowRaccoon(false);
     setShowSquirrel(false);
   };
+
+  useEffect(() => {
+    // Convert object to array format
+    const lettersArray = Array(15).fill(null).map((_, index) => 
+      selectedLetters[index + 1] || null
+    );
+    
+    onSaveAnswers({
+      selectedLetters: lettersArray,
+      gameComplete
+    });
+  }, [selectedLetters, gameComplete]);
 
   return (
     <div className="min-h-screen flex flex-col items-center relative">
@@ -373,8 +413,7 @@ export default function Games5({
             {showRaccoon && showSquirrel && (
               <button
                 onClick={async () => {
-                  await onLogBehavior(
-                    "games5",
+                  trackBehavior(
                     "game-complete",
                     "next-button-games5",
                     "complete"

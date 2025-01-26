@@ -1,7 +1,14 @@
 import { useState } from "react";
 import "@/styles/arrowbutton.css";
 
-// Import the GameActivityProps interface
+interface UserBehavior {
+  timestamp: string;
+  location: string;
+  behavior: string;
+  input: string;
+  result: string;
+}
+
 interface GameActivityProps {
   onBack: () => void;
   onComplete?: () => void;
@@ -17,7 +24,7 @@ interface GameActivityProps {
     currentCell: number;
     isComplete: boolean;
   }) => void;
-  onLogBehavior: (location: string, behavior: string, input: string, result: string) => void;
+  onTrackBehavior: (behavior: UserBehavior) => void;
 }
 
 interface Cell {
@@ -35,9 +42,9 @@ export default function Games3({
   onComplete,
   savedAnswers,
   onSaveAnswers,
-  onLogBehavior
+  onTrackBehavior
 }: GameActivityProps) {
-  console.log("onLogBehavior prop:", !!onLogBehavior);
+  // console.log("onTrackBehavior prop:", !!onTrackBehavior);
   const [currentCell, setCurrentCell] = useState(savedAnswers?.currentCell ?? 0);
   const [solvedPaths, setSolvedPaths] = useState<number[]>(savedAnswers?.solvedPaths ?? []);
   const [wrongCells, setWrongCells] = useState<number[]>(savedAnswers?.wrongCells ?? []);
@@ -96,17 +103,25 @@ export default function Games3({
     ];
   
 
-  const handleAnswerClick = async (id: number) => {
-    const current = grid[currentCell!];
+  const trackBehavior = (behavior: string, input: string, result: string) => {
+    onTrackBehavior({
+      timestamp: new Date().toISOString(),
+      location: "",
+      behavior,
+      input,
+      result
+    });
+  };
 
-    // Initial click logging
-    await onLogBehavior(
-      "games3",
+  const handleAnswerClick = async (id: number) => {
+    // Initial click tracking
+    trackBehavior(
       "click",
+      `from:${currentCell}`,
       `cell:${id}`,
-      `from:${currentCell}`
     );
 
+    const current = grid[currentCell!];
     if (current.possibleanswerid?.includes(id)) {
       if (current.answer?.includes(id)) {
         // Correct answer path
@@ -116,36 +131,20 @@ export default function Games3({
         const nextCell = current.next ? current.next[nextCellIndex] : null;
 
         if (nextCell === 34) {
-          // Game completion logging
-          try {
-            console.log("Attempting to log game completion");
-            await onLogBehavior(
-              "games3",
-              "game-complete",
-              `final-path:${solvedPaths.join(',')}`,
-              "reached-castle"
-            );
-            console.log("Successfully logged game completion");
-          } catch (error) {
-            console.error("Failed to log game completion:", error);
-          }
+          trackBehavior(
+            "game-complete",
+            `final-path:${solvedPaths.join(',')}`,
+            "reached-castle"
+          );
           setMessage("Congratulations!");
           setIsComplete(true);
           setCurrentCell(nextCell);
         } else if (nextCell !== null) {
-          // Correct move logging
-          try {
-            console.log("Attempting to log correct move");
-            await onLogBehavior(
-              "games3",
-              "correct-move",
-              `path:${currentCell}->${id}`,
-              `next:${nextCell}`
-            );
-            console.log("Successfully logged correct move");
-          } catch (error) {
-            console.error("Failed to log correct move:", error);
-          }
+          trackBehavior(
+            "correct-move",
+            `path:${currentCell}->${id}`,
+            `next:${nextCell}`
+          );
           setCurrentCell(nextCell);
           setMessage("Correct! Proceed to the next question.");
         }
@@ -159,19 +158,11 @@ export default function Games3({
         });
 
       } else {
-        // Wrong move logging
-        try {
-          console.log("Attempting to log wrong move");
-          await onLogBehavior(
-            "games3",
-            "wrong-move",
-            `attempted:${id}`,
-            `correct:${current.answer?.join(',')}`
-          );
-          console.log("Successfully logged wrong move");
-        } catch (error) {
-          console.error("Failed to log wrong move:", error);
-        }
+        trackBehavior(
+          "wrong-move",
+          `attempted:${id}`,
+          `correct:${current.answer?.join(',')}`
+        );
         
         const newWrongCells = [...wrongCells, id];
         setWrongCells(newWrongCells);
@@ -185,6 +176,17 @@ export default function Games3({
           isComplete: false,
         });
       }
+    }
+  };
+
+  const handleNextClick = async () => {
+    trackBehavior(
+      "game-complete",
+      "next-button-games3",
+      "complete"
+    );
+    if (onComplete) {
+      onComplete();
     }
   };
 
@@ -279,17 +281,7 @@ export default function Games3({
                 🎉 Amazing work! You've successfully reached the castle! 🏰
               </div>
               <button
-                onClick={async () => {
-                  await onLogBehavior(
-                    "games3",
-                    "game-complete",
-                    "next-button-games3",
-                    "complete"
-                  );
-                  if (onComplete) {
-                    onComplete();
-                  }
-                }}
+                onClick={handleNextClick}
                 className="bg-[#FF5F05] text-2xl text-white px-6 py-2 rounded-lg"
               >
                 NEXT
