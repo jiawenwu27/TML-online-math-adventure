@@ -4,12 +4,20 @@ import { motion, AnimatePresence } from 'framer-motion';
 import ReactConfetti from 'react-confetti';
 import useWindowSize from 'react-use/lib/useWindowSize';
 
+interface UserBehavior {
+  timestamp: string;
+  location: string;
+  behavior: string;
+  input: string;
+  result: string;
+}
+
 interface ActivityComponentProps {
   onBack: () => void;
   onComplete?: () => void;
   savedAnswers: number[];
   onSaveAnswers: (answers: number[]) => void;
-  onLogBehavior: (location: string, behavior: string, input: string, result: string) => void;
+  onTrackBehavior: (behavior: UserBehavior) => void;
 }
 
 export default function Games1({ 
@@ -17,7 +25,7 @@ export default function Games1({
   onComplete, 
   savedAnswers = [],
   onSaveAnswers,
-  onLogBehavior
+  onTrackBehavior
 }: ActivityComponentProps) {
   const [selectedNumbers, setSelectedNumbers] = useState<number[]>(savedAnswers);
   const [mathProblems] = useState([
@@ -51,11 +59,20 @@ export default function Games1({
     }
   }, []);
 
+  const trackBehavior = (behavior: string, input: string, result: string) => {
+    onTrackBehavior({
+      timestamp: new Date().toISOString(),
+      location: "",
+      behavior,
+      input,
+      result
+    });
+  };
+
   const handleIconClick = async (value: number) => {
-    if (selectedNumbers.length < 3) {
+    if (selectedNumbers.length < 3 && !selectedNumbers.includes(value)) {
       const newNumbers = [...selectedNumbers, value];
-      await onLogBehavior(
-        "games1",
+      trackBehavior(
         "click",
         `select-number:${value}`,
         `selected-sequence:${newNumbers.join(',')}`
@@ -73,10 +90,9 @@ export default function Games1({
       return;
     }
 
-    const isCorrect = numbers.every((num, index) => num === correctCode[index]);
+    const isCorrect = correctCode.every(num => numbers.includes(num));
     
-    await onLogBehavior(
-      "games1",
+    trackBehavior(
       "click",
       `check-code:${numbers.join(',')}`,
       isCorrect ? "correct" : "incorrect"
@@ -104,8 +120,7 @@ export default function Games1({
       return;
     }
 
-    await onLogBehavior(
-      "games1",
+    trackBehavior(
       "click",
       "next-button-games1",
       "complete"
@@ -117,8 +132,7 @@ export default function Games1({
   };
 
   const handleReset = async () => {
-    await onLogBehavior(
-      "games1",
+    trackBehavior(
       "click",
       "reset-button",
       "reset-game"
