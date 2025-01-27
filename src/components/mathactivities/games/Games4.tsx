@@ -216,7 +216,7 @@ export default function Games4({
     trackBehavior(
       "select",
       `${type}-role`,
-      role
+      role ?? 'none'
     );
     setAnswers(prev => ({
       ...prev,

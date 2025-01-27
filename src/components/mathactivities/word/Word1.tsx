@@ -45,6 +45,16 @@ export default function Word1({
     const updatedAnswers = [...answers];
     updatedAnswers[index] = value;
     onAnswersChange(updatedAnswers);
+
+    // Log each complete input value
+    if (value) {
+      onLogBehavior(
+        `word1-question-${index + 1}`,
+        "input",
+        `user-input:${value}`,
+        "in-progress"
+      );
+    }
   };
 
   const checkAnswer = async (index: number) => {
