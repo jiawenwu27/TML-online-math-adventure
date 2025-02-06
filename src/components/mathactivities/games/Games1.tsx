@@ -86,7 +86,7 @@ export default function Games1({
     const correctCode = [51, 94, 38];
     
     if (numbers.length !== 3) {
-      setMessage('Please select 3 numbers!');
+      setMessage('Please press 3 buttons!');
       return;
     }
 
@@ -107,7 +107,7 @@ export default function Games1({
       }, 1000);
       if (onSaveAnswers) onSaveAnswers(numbers);
     } else {
-      setMessage('Wrong code! Try again! 🔒');
+      setMessage('Work together on the unlocking tips--each correct answer will show you which button to press! 🔒');
       if (!isInitial) {
         setSelectedNumbers([]);
       }
@@ -173,6 +173,7 @@ export default function Games1({
             Doggie was roaming the backyard when he spotted something sparkling under a shady old tree—a mysterious box secured by a strange lock.
             <br/>Curious and excited, he wagged his tail and gave the lock a quick sniff. 
             <br/>"I wonder what's inside," Doggie thought. 
+            <br/>
             <br/>Now, it's up to you to help him crack the lock's secret code and uncover the surprise hidden within!
           </p>
 

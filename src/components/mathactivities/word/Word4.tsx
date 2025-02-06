@@ -27,7 +27,7 @@ export default function Word4({
     },
     {
       question: "One basket contains 242 apples, and another basket contains some bananas. If 76 bananas are taken out of the banana basket, then the number of bananas left is 155 fewer than the number of apples. How many bananas were originally in the banana basket?",
-      correctAnswer: 473,
+      correctAnswer: 163,
       image: "/img/word4-fruits.png",
       hint: "First find how many bananas are left, then add back the 76 that were taken out"
     },
