@@ -20,27 +20,66 @@ export default function Word5({
   onLogBehavior 
 }: ActivityComponentProps) {
   const story = {
-    question: `One sunny day, Max, Ruby, Leo, and Mia went on a hot air balloon ride over the magical Land of Numbers. Suddenly, the worried Number King appeared. "Help! The mischievous dragon Minus Max has stolen our numbers! To save the kingdom, you must solve his math challenges." The friends eagerly agreed and set off.
-
-The dragon's riddle read: "I hid 245 numbers in the first cave, 376 in the second, and 189 in the third. How many numbers are there in total?" "[___]" Ruby shouted, and they collected the stolen numbers.
-
-The friends found a locked cave and a chest with this question:
-"There are 500 numbers in the chest. I spent 243 on supplies and 115 on snacks. How many are left?"
-"[___] numbers! Let's unlock the cave," said Leo, and they retrieved more numbers.
-
-The Number King had one final task: "With [___] numbers from the caves and [___] numbers left from the chest, I'll give you brave adventurers 528 numbers as a gift, how many numbers do I have now?"
-"[___]!" Mia cheered as the kingdom lit up with numbers.`,
-    correctAnswers: ["810", "142", "810", "142", "424"],
+    sections: [
+      {
+        title: "",
+        text: "One sunny day, Max, Ruby, Leo, and Mia went on a hot air balloon ride over the magical Land of Numbers. Suddenly, the worried Number King appeared. \"Help! The mischievous dragon Minus Max has stolen all our numbers! To save the kingdom, you must solve his math challenges.\" The friends eagerly agreed and set off."
+      },
+      {
+        title: "First Riddle: Cave of Numbers",
+        text: "The dragon's riddle read: \"I hid 245 numbers in the first cave, 376 in the second, and 189 in the third. How many numbers are there in total?\" \n\"[___]\" Ruby shouted, and they collected the stolen numbers."
+      },
+      {
+        title: "Second Riddle: The Towering Gate",
+        text: "Pressing onward, they reached a towering castle gate with another puzzle inscribed on it: \"Inside this gate are 612 numbers, but 158 vanished into thin air, 234 dropped into the eternal fire. How many remain behind the gate?\" \nMax confidently announced \"[___]\" to unlock the gate, and they collected the stolen numbers."
+      },
+      {
+        title: "Third Riddle: The Sparkling Fountain",
+        text: "Deeper in the castle, the group discovered a sparkling fountain. A nearby note read: \"I placed 432 numbers in this fountain for the frogs, but 123 hopped away, and 67 more were borrowed by a passing turtle. How many are left in the fountain?\"\n\"[___] numbers!\" Mia figured it out, and they claimed more stolen numbers."
+      },
+      {
+        title: "",
+        text: "Suddenly, the Number King appeared, thrilled to see so many numbers restored. He asked: \"You've collected numbers from the three caves, the castle gate, and the fountain. How many have you saved in total?\"\nMia, Max, Ruby, and Leo combined their results:\n\"[___]!\" they announced."
+      },
+      {
+        title: "",
+        text: "A dazzling rainbow of digits burst into the sky. The Number King cheered, “Thanks to your clever math, our kingdom is safe and whole again!” With that, the mischievous dragon Minus Max flew off, defeated by the power of teamwork and problem-solving."
+      }
+    ],
+    correctAnswers: ["810", "220", "242", "1272"],
+    hints: [
+      "Add the numbers in steps: try 245 + 376 first, then add 189.",
+      "Start with 612. Subtract 158 to find what's left, then subtract another 234.",
+      "Begin with 432. Take away 123, then subtract 67 more.",
+      "Add your answers: the result of the caves (+) the result of the gate (+) the result of the fountain."
+    ]
   };
 
+  // Add state for showing hints and tracking attempts
+  const [showHints, setShowHints] = useState<boolean[]>(Array(4).fill(false));
+  const [hasAttempted, setHasAttempted] = useState<boolean[]>(Array(4).fill(false));
+
   // Initialize answers with empty strings and isCorrect with null if they're empty
-  const answers = propAnswers.length ? propAnswers : Array(5).fill("");
-  const isCorrect = propIsCorrect.length ? propIsCorrect : Array(5).fill(null);
+  const answers = propAnswers.length ? propAnswers : Array(4).fill("");
+  const isCorrect = propIsCorrect.length ? propIsCorrect : Array(4).fill(null);
 
   const handleInput = (index: number, value: string) => {
     const newAnswers = [...answers];
     newAnswers[index] = value;
     onAnswersChange(newAnswers);
+  };
+
+  const toggleHint = async (index: number) => {
+    const newShowHints = [...showHints];
+    newShowHints[index] = !newShowHints[index];
+    setShowHints(newShowHints);
+
+    await onLogBehavior(
+      `word5-blank-${index + 1}`,
+      "click",
+      `hint-button:${newShowHints[index] ? 'show' : 'hide'}`,
+      "hint-interaction"
+    );
   };
 
   const checkAnswers = async () => {
@@ -50,6 +89,12 @@ The Number King had one final task: "With [___] numbers from the caves and [___]
       }
       return acc;
     }, []);
+
+    // Mark all attempted answers
+    const newHasAttempted = answers.map((answer, index) => 
+      answer !== "" || hasAttempted[index]
+    );
+    setHasAttempted(newHasAttempted);
 
     await onLogBehavior(
       "word5-story",
@@ -104,45 +149,77 @@ The Number King had one final task: "With [___] numbers from the caves and [___]
             <img
               src="/img/word5-dragon.png"
               alt="Dragon"
-              className="absolute -right-[1rem] -bottom-[1rem] w-40 h-auto transform rotate-10"
+              className="absolute -right-[1rem] -bottom-[0.5rem] w-40 h-auto transform rotate-10"
             />
 
-            <div className="story-text text-lg leading-relaxed space-y-4 mb-6">
-              {story.question.split("\n\n").map((paragraph, i) => (
-                <p key={`paragraph-${i}`} className="relative z-10">
-                  {paragraph.split("[___]").map((text, j, array) => {
-                    const previousBlanks = story.question
-                      .split("\n\n")
-                      .slice(0, i)
-                      .reduce((acc, para) => acc + (para.match(/\[___\]/g) || []).length, 0);
-                    
-                    const currentIndex = previousBlanks + j;
+            <div className="story-text text-lg leading-relaxed space-y-8 mb-6">
+              {story.sections.map((section, i) => (
+                <div key={`section-${i}`} className="relative z-10">
+                  {section.title && (
+                    <h3 className="text-xl font-bold text-[#13294B] mb-3">
+                      {section.title}
+                    </h3>
+                  )}
+                  {section.text.split("\n").map((paragraph, j) => (
+                    <p key={`paragraph-${i}-${j}`} className="mb-4">
+                      {paragraph.split("[___]").map((text, k, array) => {
+                        // Calculate blank index based on the current section's blank
+                        const currentIndex = story.sections
+                          .slice(0, i)
+                          .reduce((acc, sec) => 
+                            acc + (sec.text.match(/\[___\]/g) || []).length, 0
+                          );
 
-                    return (
-                      <span key={`text-${i}-${j}`}>
-                        {text}
-                        {j < array.length - 1 && (
-                          <span className="inline-block">
-                            <input
-                              type="number"
-                              value={answers[currentIndex]}
-                              onChange={(e) =>
-                                handleInput(currentIndex, e.target.value)
-                              }
-                              onWheel={(e) => (e.target as HTMLInputElement).blur()}
-                              style={{ WebkitAppearance: 'none', MozAppearance: 'textfield' }}
-                              className={`w-24 mx-2 text-center border-2 rounded-md ${
-                                !isCorrect[currentIndex] && answers[currentIndex] !== ""
-                                  ? "border-red-500 bg-red-50"
-                                  : "border-blue-400"
-                              } focus:border-blue-600 outline-none`}
-                            />
+                        return (
+                          <span key={`text-${i}-${j}-${k}`}>
+                            {text}
+                            {k < array.length - 1 && (
+                              <span className="inline-block relative">
+                                <input
+                                  type="number"
+                                  value={answers[currentIndex]}
+                                  onChange={(e) => handleInput(currentIndex, e.target.value)}
+                                  onWheel={(e) => (e.target as HTMLInputElement).blur()}
+                                  style={{ WebkitAppearance: 'none', MozAppearance: 'textfield' }}
+                                  className={`w-24 mx-2 text-center border-2 rounded-md ${
+                                    hasAttempted[currentIndex] && !isCorrect[currentIndex]
+                                      ? "border-red-500 bg-red-50"
+                                      : "border-blue-400"
+                                  } focus:border-blue-600 outline-none`}
+                                />
+                                {/* Show hint button after first incorrect attempt */}
+                                {hasAttempted[currentIndex] && isCorrect[currentIndex] === false && (
+                                  <div className="inline-block ml-2">
+                                    <button
+                                      onClick={() => toggleHint(currentIndex)}
+                                      className="bg-[#13294B] text-white px-3 py-1 rounded-lg text-sm"
+                                    >
+                                      {showHints[currentIndex] ? 'Hide Hint' : 'Show Hint'}
+                                    </button>
+                                    {showHints[currentIndex] && (
+                                      <div className="absolute left-0 mt-2 text-[#13294B] bg-blue-100 p-3 rounded-lg z-20 w-[30rem]">
+                                        💡 {story.hints[currentIndex]}
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                              </span>
+                            )}
                           </span>
-                        )}
-                      </span>
-                    );
-                  })}
-                </p>
+                        );
+                      })}
+                    </p>
+                  ))}
+                  {/* Add extra margin space only if the current section's hint is shown */}
+                  {i < story.sections.length - 1 && // Only check for non-last sections
+                    showHints[story.sections
+                      .slice(0, i + 1)              // Include current section
+                      .reduce((acc, sec) => 
+                        acc + (sec.text.match(/\[___\]/g) || []).length, 0
+                      ) - 1] && (                   // Check the current section's blank
+                      <div className="h-20"></div>  // Add space that will push the next section down
+                  )}
+                </div>
               ))}
             </div>
 

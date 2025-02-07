@@ -129,7 +129,7 @@ export default function Games2({
     }));
   };
 
-  const checkWinner = (squares: Square[]): string | null => {
+  const checkWinner = (board: Square[]): string | null => {
     const lines = [
       [0, 1, 2], [3, 4, 5], [6, 7, 8], // rows
       [0, 3, 6], [1, 4, 7], [2, 5, 8], // columns
@@ -138,13 +138,19 @@ export default function Games2({
 
     for (const [a, b, c] of lines) {
       if (
-        squares[a].value &&
-        squares[a].value === squares[b].value &&
-        squares[a].value === squares[c].value
+        board[a].value &&
+        board[a].value === board[b].value &&
+        board[a].value === board[c].value
       ) {
-        return squares[a].value;
+        return board[a].value;
       }
     }
+    
+    // Check for tie: if all squares are filled and no winner
+    if (board.every(square => square.value !== null)) {
+      return 'tie';
+    }
+    
     return null;
   };
 
@@ -205,8 +211,24 @@ export default function Games2({
         };
 
         const winner = checkWinner(newBoard);
-        if (winner) {
-          const winMessage = `${gameState.currentPlayer === 'parent' ? 'Parent' : 'Child'}! High Five! You're the Tic Tac Toe Champion!`;
+        if (winner === 'tie') {
+          const winMessage = "It’s a tie! Both of you played brilliantly—no winners or losers this time. 🎉🎉 Great job, team! 🎉🎉";
+          updateGameState({
+            board: newBoard,
+            message: winMessage,
+            gameComplete: true,
+            selectedSquare: null,
+            answer: '',
+            userInputs: newUserInputs
+          });
+
+          trackBehavior(
+            "game-complete",
+            "result:tie",
+            "game-finished-tie"
+          );
+        } else if (winner) {
+          const winMessage = `${gameState.currentPlayer === 'parent' ? 'Parent' : 'Child'} wins! 🎉`;
           updateGameState({
             board: newBoard,
             message: winMessage,
@@ -219,7 +241,7 @@ export default function Games2({
           trackBehavior(
             "game-complete",
             `winner:${gameState.currentPlayer}`,
-            winMessage
+            "game-finished-win"
           );
         } else {
           updateGameState({
@@ -232,8 +254,7 @@ export default function Games2({
         }
       } else {
         updateGameState({
-          // userInputs: newUserInputs,
-          message: 'Wrong answer! Turn goes to the other player.',
+          message: 'Incorrect! Turn passes to the other player.',
           currentPlayer: gameState.currentPlayer === 'parent' ? 'child' : 'parent',
           selectedSquare: null,
           answer: ''
@@ -391,7 +412,13 @@ export default function Games2({
           </div>
         )}
         {gameState.message && (
-          <div className="text-xl font-bold mb-6">{gameState.message}</div>
+          <div className={`text-xl font-bold mb-6 ${
+            gameState.message.includes('winners') || gameState.message.includes('wins')
+              ? 'text-green-600'
+              : 'text-red-600'
+          }`}>
+            {gameState.message}
+          </div>
         )}
         {gameState.gameComplete && (
           <button
