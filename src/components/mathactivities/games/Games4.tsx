@@ -91,6 +91,19 @@ export default function Games4({
     }
   }, [answers]);
 
+  // Add this useEffect to reset steps when currentList changes
+  useEffect(() => {
+    setCurrentStep('shopper');
+    setStepComplete({
+      shopper: false,
+      total: false,
+      budget: false,
+      cashier: false,
+      change: false
+    });
+    setMessages({});
+  }, [currentList]);
+
   const shoppingLists: ShoppingList[] = [
     {
       id: 1,
@@ -261,9 +274,7 @@ export default function Games4({
           className="mx-auto mb-4 w-[30rem] h-auto"
         />
 
-        {/* Always show completed steps and current step */}
         <div className="space-y-8">
-          {/* Shopper Selection - Always show if completed */}
           {(currentStep === 'shopper' || stepComplete.shopper) && (
             <div className="mb-8">
               <h3 className="text-2xl mb-4 text-left">Who will be the shopper?</h3>
@@ -288,8 +299,7 @@ export default function Games4({
             </div>
           )}
 
-          {/* Total Amount - Show if shopper is complete */}
-          {(stepComplete.shopper || stepComplete.total) && (
+          {((currentStep === 'total' && stepComplete.shopper) || stepComplete.total) && (
             <div className="mb-8">
               <p className="text-2xl mb-4 text-left">How much do I need to buy all items?</p>
               <div className="flex items-center justify-start gap-4">
@@ -319,8 +329,7 @@ export default function Games4({
             </div>
           )}
 
-          {/* Budget Question - Show if total is complete */}
-          {(stepComplete.total || stepComplete.budget) && (
+          {((currentStep === 'budget' && stepComplete.total) || stepComplete.budget) && (
             <div className="mb-8">
               <p className="text-2xl mb-4 text-left">
                 Do I have enough money in my budget to buy everything?
@@ -351,8 +360,7 @@ export default function Games4({
             </div>
           )}
 
-          {/* Cashier Selection - Show if budget is complete */}
-          {(stepComplete.budget || stepComplete.cashier) && (
+          {((currentStep === 'cashier' && stepComplete.budget) || stepComplete.cashier) && (
             <div className="mb-8">
               <h3 className="text-2xl mb-4 text-left">Who will be the cashier?</h3>
               <div className="flex justify-center gap-8">
@@ -376,8 +384,7 @@ export default function Games4({
             </div>
           )}
 
-          {/* Change Amount - Show if cashier is complete */}
-          {(stepComplete.cashier || stepComplete.change) && (
+          {((currentStep === 'change' && stepComplete.cashier) || stepComplete.change) && (
             <div className="mb-8">
               <p className="text-2xl mb-4 text-left">
                 Eugene gave me all her budget money for this shopping list. How much change should I give her back?/How much does she owe?
