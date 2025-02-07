@@ -148,6 +148,9 @@ export default function ActivitySelection() {
   const [dataQueue, setDataQueue] = useState<QueueItem[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // Add new state for completed questions
+  const [completedQuestions, setCompletedQuestions] = useState<boolean[]>(Array(5).fill(false));
+
   // Load userID
   useEffect(() => {
     const storedUserID = localStorage.getItem("userID");
@@ -293,20 +296,35 @@ export default function ActivitySelection() {
   };
 
   const handleActivityComplete = () => {
-    if (activeQuestion !== null && activeQuestion < 4) {
-      setCurrentSet(activeQuestion + 1);
-      setShowQuestion(false);
-      setActiveQuestion(null);
-    } else {
-      router.push("/final");
+    if (activeQuestion !== null) {
+      // Mark the current question as completed
+      setCompletedQuestions(prev => {
+        const newCompleted = [...prev];
+        newCompleted[activeQuestion] = true;
+        return newCompleted;
+      });
+
+      if (activeQuestion < 4) {
+        setCurrentSet(activeQuestion + 1);
+        setShowQuestion(false);
+        setActiveQuestion(null);
+      } else {
+        router.push("/final");
+      }
     }
   };
 
   const handleRevisit = (index: number) => {
-    if (selections[index] !== null) {
-      setCurrentSet(index);
-      setActiveQuestion(index);
+    setCurrentSet(index);
+    
+    // If there's no selection for this index, show the selection screen
+    if (selections[index] === null) {
+      setShowQuestion(false);
+      setActiveQuestion(null);
+    } else {
+      // If there's already a selection, show the activity
       setShowQuestion(true);
+      setActiveQuestion(index);
     }
   };
 
@@ -400,24 +418,6 @@ export default function ActivitySelection() {
     );
   };
 
-  if (showQuestion && activeQuestion !== null) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-6 mt-4">
-        <ProgressBar
-          totalSteps={5}
-          currentStep={currentSet + 1}
-          completedSteps={selections.filter(Boolean).length}
-          onStepClick={handleRevisit}
-          selections={selections}
-          disabledSteps={selections.map((selection, index) => selection === null && index !== currentSet)}
-        />
-        {renderActivity(activeQuestion)}
-      </div>
-    );
-  }
-
-  const currentActivitySet = activitySets[currentSet];
-
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 mt-4">
       <ProgressBar
@@ -426,55 +426,63 @@ export default function ActivitySelection() {
         completedSteps={selections.filter(Boolean).length}
         onStepClick={handleRevisit}
         selections={selections}
-        disabledSteps={selections.map((selection, index) => selection === null && index !== currentSet)}
+        disabledSteps={Array(5).fill(false)} // Allow all steps to be clickable
+        completedQuestions={completedQuestions}
       />
 
-      <div className="w-full max-w-3xl text-center mb-8">
-        <h2 className="text-2xl text-[#13294B] mb-6">
-          Choose the math activity you want to work on by clicking that box and click <span className="font-bold text-[#FF5F05]">NEXT</span>
-        </h2>
+      {showQuestion && activeQuestion !== null ? (
+        // Show the activity if one is selected
+        renderActivity(activeQuestion)
+      ) : (
+        // Show the activity selection screen
+        <div className="w-full max-w-3xl text-center mb-8">
+          <h2 className="text-2xl text-[#13294B] mb-6">
+            Choose the math activity you want to work on by clicking that box and click{" "}
+            <span className="font-bold text-[#FF5F05]">NEXT</span>
+          </h2>
 
-        <div className="flex flex-wrap gap-8 justify-center mb-8 w-full">
-          <HoverBoxSelectable
-            title="Formal Math Questions"
-            backgroundColor="#8CC63E"
-            content={currentActivitySet.formal.content}
-            contentFontSize="1.5rem"
-            isSelected={selections[currentSet] === "formal"}
-            onSelect={() => handleActivitySelect("formal")}
-            disabled={false}
-          />
+          <div className="flex flex-wrap gap-8 justify-center mb-8 w-full">
+            <HoverBoxSelectable
+              title="Formal Math Questions"
+              backgroundColor="#8CC63E"
+              content={activitySets[currentSet].formal.content}
+              contentFontSize="1.5rem"
+              isSelected={selections[currentSet] === "formal"}
+              onSelect={() => handleActivitySelect("formal")}
+              disabled={false}
+            />
 
-          <HoverBoxSelectable
-            title="Math Word Problems"
-            backgroundColor="#FFCC00"
-            image={currentActivitySet.word.image}
-            content={currentActivitySet.word.content}
-            contentFontSize="1.2rem"
-            contentAlign="left"
-            isSelected={selections[currentSet] === "word"}
-            onSelect={() => handleActivitySelect("word")}
-            disabled={false}
-          />
+            <HoverBoxSelectable
+              title="Math Word Problems"
+              backgroundColor="#FFCC00"
+              image={activitySets[currentSet].word.image}
+              content={activitySets[currentSet].word.content}
+              contentFontSize="1.2rem"
+              contentAlign="left"
+              isSelected={selections[currentSet] === "word"}
+              onSelect={() => handleActivitySelect("word")}
+              disabled={false}
+            />
 
-          <HoverBoxSelectable
-            title="Interactive Math Game"
-            backgroundColor="#CC0001"
-            image={currentActivitySet.game.image}
-            isWide={true}
-            isSelected={selections[currentSet] === "game"}
-            onSelect={() => handleActivitySelect("game")}
-            disabled={false}
-          />
+            <HoverBoxSelectable
+              title="Interactive Math Game"
+              backgroundColor="#CC0001"
+              image={activitySets[currentSet].game.image}
+              isWide={true}
+              isSelected={selections[currentSet] === "game"}
+              onSelect={() => handleActivitySelect("game")}
+              disabled={false}
+            />
+          </div>
+
+          <button
+            onClick={handleNext}
+            className="bg-[#FF5F05] text-white font-bold py-4 px-8 rounded-lg shadow-lg hover:bg-[#F07249] text-2xl"
+          >
+            NEXT
+          </button>
         </div>
-
-        <button
-          onClick={handleNext}
-          className="bg-[#FF5F05] text-white font-bold py-4 px-8 rounded-lg shadow-lg hover:bg-[#F07249] text-2xl"
-        >
-          NEXT
-        </button>
-      </div>
+      )}
     </div>
   );
 }

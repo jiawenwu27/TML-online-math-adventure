@@ -219,6 +219,9 @@ export default function BlueActivities() {
   const [isProcessing, setIsProcessing] = useState(false);
   console.log("dataQueue", dataQueue);
 
+  // Add this state near your other state declarations
+  const [completedQuestions, setCompletedQuestions] = useState<boolean[]>(Array(5).fill(false));
+
   // Convert order string into activity sequence
   const activitySequence = order.split("").map((num) => {
     switch (num) {
@@ -259,6 +262,13 @@ export default function BlueActivities() {
         currentSet < 4 ? `from-${activityType}-${currentSet + 1}-to-next-activity` : "redirect-to-final"
       );
       
+      // Update completed questions
+      setCompletedQuestions(prev => {
+        const newCompleted = [...prev];
+        newCompleted[currentSet] = true;
+        return newCompleted;
+      });
+      
       if (currentSet < 4) {
         setCurrentSet(currentSet + 1);
       } else {
@@ -271,19 +281,17 @@ export default function BlueActivities() {
 
   // Only allow visiting completed sets or the current set
   const handleRevisit = async (index: number) => {
-    if (index <= currentSet) {
-      try {
-        const activityType = activitySequence[index];
-        await logBehavior(
-          "progress-bar",
-          "click",
-          `revisit-${activityType}-${index + 1}`,
-          `moved-to-${activityType}-${index + 1}`
-        );
-        setCurrentSet(index);
-      } catch (error) {
-        console.error("Error during revisit:", error);
-      }
+    try {
+      const activityType = activitySequence[index];
+      await logBehavior(
+        "progress-bar",
+        "click",
+        `visit-${activityType}-${index + 1}`,
+        `moved-to-${activityType}-${index + 1}`
+      );
+      setCurrentSet(index);
+    } catch (error) {
+      console.error("Error during revisit:", error);
     }
   };
 
@@ -457,7 +465,8 @@ export default function BlueActivities() {
         completedSteps={currentSet}
         onStepClick={handleRevisit}
         selections={activitySequence}
-        disabledSteps={Array(5).fill(false).map((_, index) => index > currentSet)}
+        disabledSteps={Array(5).fill(false)}
+        completedQuestions={completedQuestions}
       />
       {renderActivity(currentSet)}
     </div>
