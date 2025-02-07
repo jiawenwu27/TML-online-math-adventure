@@ -217,7 +217,7 @@ export default function BlueActivities() {
   // Add these states at the top of the component
   const [dataQueue, setDataQueue] = useState<QueueItem[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
-  console.log("dataQueue", dataQueue);
+  
 
   // Add this state near your other state declarations
   const [completedQuestions, setCompletedQuestions] = useState<boolean[]>(Array(5).fill(false));
@@ -252,6 +252,27 @@ export default function BlueActivities() {
     }
   };
 
+  // Add useEffect to load saved answers from localStorage
+  useEffect(() => {
+    const loadSavedAnswers = () => {
+      const savedWordAnswers = localStorage.getItem('blueWordAnswers');
+      const savedWordCorrect = localStorage.getItem('blueWordCorrect');
+      const savedFormalAnswers = localStorage.getItem('blueFormalAnswers');
+      const savedFormalCorrect = localStorage.getItem('blueFormalCorrect');
+      const savedGameAnswers = localStorage.getItem('blueGameAnswers');
+      const savedCompletedQuestions = localStorage.getItem('blueCompletedQuestions');
+
+      if (savedWordAnswers) setWordAnswers(JSON.parse(savedWordAnswers));
+      if (savedWordCorrect) setWordCorrect(JSON.parse(savedWordCorrect));
+      if (savedFormalAnswers) setFormalAnswers(JSON.parse(savedFormalAnswers));
+      if (savedFormalCorrect) setFormalCorrect(JSON.parse(savedFormalCorrect));
+      if (savedGameAnswers) setGameAnswers(JSON.parse(savedGameAnswers));
+      if (savedCompletedQuestions) setCompletedQuestions(JSON.parse(savedCompletedQuestions));
+    };
+
+    loadSavedAnswers();
+  }, []);
+
   const handleActivityComplete = async () => {
     try {
       const activityType = activitySequence[currentSet];
@@ -266,6 +287,7 @@ export default function BlueActivities() {
       setCompletedQuestions(prev => {
         const newCompleted = [...prev];
         newCompleted[currentSet] = true;
+        localStorage.setItem('blueCompletedQuestions', JSON.stringify(newCompleted));
         return newCompleted;
       });
       
@@ -370,7 +392,7 @@ export default function BlueActivities() {
     });
   };
 
-  // Modified handleAnswerChange to wait for queue update
+  // Modify handleAnswerChange to save to localStorage
   const handleAnswerChange = async (newAnswers: string[], activityType: string, setIndex: number) => {
     await new Promise<void>(resolve => {
       setDataQueue(prev => {
@@ -392,13 +414,31 @@ export default function BlueActivities() {
       const newWordAnswers = { ...wordAnswers };
       newWordAnswers[setIndex] = newAnswers;
       setWordAnswers(newWordAnswers);
+      localStorage.setItem('blueWordAnswers', JSON.stringify(newWordAnswers));
     } else {
       const newFormalAnswers = { ...formalAnswers };
       newFormalAnswers[setIndex] = newAnswers;
       setFormalAnswers(newFormalAnswers);
+      localStorage.setItem('blueFormalAnswers', JSON.stringify(newFormalAnswers));
     }
   };
 
+  // Modify the part where correctness is updated
+  const handleCorrectChange = (newCorrect: (boolean | null)[], activityType: string, setIndex: number) => {
+    if (activityType === "word") {
+      const newWordCorrect = { ...wordCorrect };
+      newWordCorrect[setIndex] = newCorrect;
+      setWordCorrect(newWordCorrect);
+      localStorage.setItem('blueWordCorrect', JSON.stringify(newWordCorrect));
+    } else {
+      const newFormalCorrect = { ...formalCorrect };
+      newFormalCorrect[setIndex] = newCorrect;
+      setFormalCorrect(newFormalCorrect);
+      localStorage.setItem('blueFormalCorrect', JSON.stringify(newFormalCorrect));
+    }
+  };
+
+  // Modify handleGameAnswerSave to save to localStorage
   const handleGameAnswerSave = async (answers: any, setIndex: number) => {
     try {
       const activityType = activitySequence[setIndex];
@@ -408,10 +448,10 @@ export default function BlueActivities() {
         JSON.stringify(answers),
         "game"
       );
-      // console.log("answers", answers);
       const newGameAnswers = [...gameAnswers];
       newGameAnswers[setIndex] = answers;
       setGameAnswers(newGameAnswers);
+      localStorage.setItem('blueGameAnswers', JSON.stringify(newGameAnswers));
     } catch (error) {
       console.error("Error logging game answer:", error);
     }
@@ -442,17 +482,7 @@ export default function BlueActivities() {
         ? (wordCorrect[setIndex] || [])
         : (formalCorrect[setIndex] || [])}
       onAnswersChange={(newAnswers) => handleAnswerChange(newAnswers, activityType, setIndex)}
-      onCorrectChange={(newCorrect) => {
-        if (activityType === "word") {
-          const newWordCorrect = { ...wordCorrect };
-          newWordCorrect[setIndex] = newCorrect;
-          setWordCorrect(newWordCorrect);
-        } else {
-          const newFormalCorrect = { ...formalCorrect };
-          newFormalCorrect[setIndex] = newCorrect;
-          setFormalCorrect(newFormalCorrect);
-        }
-      }}
+      onCorrectChange={(newCorrect) => handleCorrectChange(newCorrect, activityType, setIndex)}
       onLogBehavior={logBehavior}
     />;
   };

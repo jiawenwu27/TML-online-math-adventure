@@ -209,6 +209,29 @@ export default function ActivitySelection() {
     processQueueItem();
   }, [dataQueue, isProcessing, userID]);
 
+  // Add useEffect to load saved answers from localStorage
+  useEffect(() => {
+    const loadSavedAnswers = () => {
+      const savedFormalAnswers = localStorage.getItem('greenFormalAnswers');
+      const savedFormalCorrect = localStorage.getItem('greenFormalCorrect');
+      const savedWordAnswers = localStorage.getItem('greenWordAnswers');
+      const savedWordCorrect = localStorage.getItem('greenWordCorrect');
+      const savedGameAnswers = localStorage.getItem('greenGameAnswers');
+      const savedCompletedQuestions = localStorage.getItem('greenCompletedQuestions');
+      const savedSelections = localStorage.getItem('greenSelections');
+
+      if (savedFormalAnswers) setFormalAnswers(JSON.parse(savedFormalAnswers));
+      if (savedFormalCorrect) setFormalCorrect(JSON.parse(savedFormalCorrect));
+      if (savedWordAnswers) setWordAnswers(JSON.parse(savedWordAnswers));
+      if (savedWordCorrect) setWordCorrect(JSON.parse(savedWordCorrect));
+      if (savedGameAnswers) setGameAnswers(JSON.parse(savedGameAnswers));
+      if (savedCompletedQuestions) setCompletedQuestions(JSON.parse(savedCompletedQuestions));
+      if (savedSelections) setSelections(JSON.parse(savedSelections));
+    };
+
+    loadSavedAnswers();
+  }, []);
+
   // Modified handleBehaviorTracking
   const handleBehaviorTracking = async (behavior: UserBehavior, setIndex: number) => {
     const activityType = selections[setIndex];
@@ -230,7 +253,7 @@ export default function ActivitySelection() {
     });
   };
 
-  // Modified handleAnswerChange
+  // Modify handleAnswerChange to save to localStorage
   const handleAnswerChange = async (newAnswers: string[], activityType: string, setIndex: number) => {
     await new Promise<void>(resolve => {
       setDataQueue(prev => {
@@ -252,10 +275,27 @@ export default function ActivitySelection() {
       const newFormalAnswers = [...formalAnswers];
       newFormalAnswers[setIndex] = newAnswers;
       setFormalAnswers(newFormalAnswers);
+      localStorage.setItem('greenFormalAnswers', JSON.stringify(newFormalAnswers));
     } else if (activityType === "word") {
       const newWordAnswers = [...wordAnswers];
       newWordAnswers[setIndex] = newAnswers;
       setWordAnswers(newWordAnswers);
+      localStorage.setItem('greenWordAnswers', JSON.stringify(newWordAnswers));
+    }
+  };
+
+  // Modify handleCorrectChange to save to localStorage
+  const handleCorrectChange = (newCorrect: (boolean | null)[], activityType: string, setIndex: number) => {
+    if (activityType === "formal") {
+      const newFormalCorrect = [...formalCorrect];
+      newFormalCorrect[setIndex] = newCorrect;
+      setFormalCorrect(newFormalCorrect);
+      localStorage.setItem('greenFormalCorrect', JSON.stringify(newFormalCorrect));
+    } else if (activityType === "word") {
+      const newWordCorrect = [...wordCorrect];
+      newWordCorrect[setIndex] = newCorrect;
+      setWordCorrect(newWordCorrect);
+      localStorage.setItem('greenWordCorrect', JSON.stringify(newWordCorrect));
     }
   };
 
@@ -280,10 +320,12 @@ export default function ActivitySelection() {
     }, [formalCorrect[index]]);
   });
 
+  // Modify handleActivitySelect to save selections
   const handleActivitySelect = (activityType: string) => {
     const newSelections = [...selections];
     newSelections[currentSet] = activityType;
     setSelections(newSelections);
+    localStorage.setItem('greenSelections', JSON.stringify(newSelections));
   };
 
   const handleNext = () => {
@@ -295,12 +337,13 @@ export default function ActivitySelection() {
     setActiveQuestion(currentSet);
   };
 
+  // Modify handleActivityComplete to save completed questions
   const handleActivityComplete = () => {
     if (activeQuestion !== null) {
-      // Mark the current question as completed
       setCompletedQuestions(prev => {
         const newCompleted = [...prev];
         newCompleted[activeQuestion] = true;
+        localStorage.setItem('greenCompletedQuestions', JSON.stringify(newCompleted));
         return newCompleted;
       });
 
@@ -328,7 +371,7 @@ export default function ActivitySelection() {
     }
   };
 
-  // Add handleGameAnswerSave function
+  // Modify handleGameAnswerSave to save to localStorage
   const handleGameAnswerSave = async (answers: any, setIndex: number) => {
     try {
       const activityType = selections[setIndex];
@@ -352,6 +395,7 @@ export default function ActivitySelection() {
       const newGameAnswers = [...gameAnswers];
       newGameAnswers[setIndex] = answers;
       setGameAnswers(newGameAnswers);
+      localStorage.setItem('greenGameAnswers', JSON.stringify(newGameAnswers));
     } catch (error) {
       console.error("Error logging game answer:", error);
     }
@@ -394,15 +438,7 @@ export default function ActivitySelection() {
         isCorrect={activityType === "formal" ? formalCorrect[setIndex] : wordCorrect[setIndex]}
         onAnswersChange={(newAnswers) => handleAnswerChange(newAnswers, activityType, setIndex)}
         onCorrectChange={(newCorrect) => {
-          if (activityType === "formal") {
-            const newFormalCorrect = [...formalCorrect];
-            newFormalCorrect[setIndex] = newCorrect;
-            setFormalCorrect(newFormalCorrect);
-          } else {
-            const newWordCorrect = [...wordCorrect];
-            newWordCorrect[setIndex] = newCorrect;
-            setWordCorrect(newWordCorrect);
-          }
+          handleCorrectChange(newCorrect, activityType, setIndex);
         }}
         onLogBehavior={(location, behavior, input, result) => {
           const behaviorData: UserBehavior = {
