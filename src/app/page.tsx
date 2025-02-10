@@ -138,7 +138,7 @@ export default function Home() {
       </div>
 
       {/* Magic Code Prompt */}
-      <div className="text-center mb-6">
+      <div className="text-center mb-2">
       <h3 className="text-2xl font-semibold text-[#003DA5] mb-6">
         Before we begin, we need the {" "}
         <span className="animate-highlight">
@@ -146,15 +146,7 @@ export default function Home() {
         </span>{" "}
           given by the researcher to get started.
       </h3>
-        <p className="text-gray-700 text-sm mb-6">
-          This helps us show you the right math problems!
-        </p>
-        <p className="text-gray-700 text-sm">
-          <em>
-            If you don't remember the code, check the Zoom chat or your
-            mom/dad's phone for a text message from the researcher.
-          </em>
-        </p>
+
       </div>
 
       {/* Code Input and Button */}
@@ -191,8 +183,8 @@ export default function Home() {
           className="mt-4 bg-[#003DA5] text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:bg-[#3358A3]">
           Start My Math Adventure
         </button>
-        <p className="text-sm text-gray-500 mt-2">
-          No code yet? Check Zoom chat or phone messages!
+        <p className="text-sm text-gray-500 mt-4">
+          No code yet? Check Zoom chat!
         </p>
       </div>
 

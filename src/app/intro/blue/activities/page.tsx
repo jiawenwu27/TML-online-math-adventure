@@ -294,6 +294,21 @@ export default function BlueActivities() {
       if (currentSet < 4) {
         setCurrentSet(currentSet + 1);
       } else {
+        // Check for incomplete questions before proceeding to final
+        const incompleteQuestions = completedQuestions
+          .map((completed, index) => !completed ? index + 1 : null)
+          .filter((index): index is number => index !== null);
+
+        if (incompleteQuestions.length > 0) {
+          const confirmMessage = `You haven't completed Question${incompleteQuestions.length > 1 ? 's' : ''} ${incompleteQuestions.join(', ')}. Would you like to revisit ${incompleteQuestions.length > 1 ? 'them' : 'it'} before proceeding?`;
+          
+          if (window.confirm(confirmMessage)) {
+            // Navigate to the first incomplete question
+            handleRevisit(incompleteQuestions[0] - 1);
+            return;
+          }
+        }
+
         router.push("/final");
       }
     } catch (error) {

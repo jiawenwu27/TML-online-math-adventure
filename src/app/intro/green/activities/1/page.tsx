@@ -151,6 +151,9 @@ export default function ActivitySelection() {
   // Add new state for completed questions
   const [completedQuestions, setCompletedQuestions] = useState<boolean[]>(Array(5).fill(false));
 
+  // Add state to track locked selections
+  const [lockedSelections, setLockedSelections] = useState<boolean[]>(Array(5).fill(false));
+
   // Load userID
   useEffect(() => {
     const storedUserID = localStorage.getItem("userID");
@@ -230,6 +233,18 @@ export default function ActivitySelection() {
     };
 
     loadSavedAnswers();
+  }, []);
+
+  // Add useEffect to load locked selections from localStorage
+  useEffect(() => {
+    const loadSavedSelections = () => {
+      const savedLockedSelections = localStorage.getItem('greenLockedSelections');
+      if (savedLockedSelections) {
+        setLockedSelections(JSON.parse(savedLockedSelections));
+      }
+    };
+
+    loadSavedSelections();
   }, []);
 
   // Modified handleBehaviorTracking
@@ -320,24 +335,34 @@ export default function ActivitySelection() {
     }, [formalCorrect[index]]);
   });
 
-  // Modify handleActivitySelect to save selections
+  // Modify handleActivitySelect to prevent selection if locked
   const handleActivitySelect = (activityType: string) => {
+    if (lockedSelections[currentSet]) return; // Prevent selection if locked
+    
     const newSelections = [...selections];
     newSelections[currentSet] = activityType;
     setSelections(newSelections);
     localStorage.setItem('greenSelections', JSON.stringify(newSelections));
   };
 
+  // Modify handleNext to lock the selection when entering an activity
   const handleNext = () => {
     if (!selections[currentSet]) {
       alert("Please choose one activity to continue!");
       return;
     }
+    
+    // Lock the current selection
+    const newLockedSelections = [...lockedSelections];
+    newLockedSelections[currentSet] = true;
+    setLockedSelections(newLockedSelections);
+    localStorage.setItem('greenLockedSelections', JSON.stringify(newLockedSelections));
+    
     setShowQuestion(true);
     setActiveQuestion(currentSet);
   };
 
-  // Modify handleActivityComplete to save completed questions
+  // Modify handleActivityComplete
   const handleActivityComplete = () => {
     if (activeQuestion !== null) {
       setCompletedQuestions(prev => {
@@ -352,6 +377,21 @@ export default function ActivitySelection() {
         setShowQuestion(false);
         setActiveQuestion(null);
       } else {
+        // Check for incomplete questions before proceeding to final
+        const incompleteQuestions = completedQuestions
+          .map((completed, index) => !completed ? index + 1 : null)
+          .filter((index): index is number => index !== null);
+
+        if (incompleteQuestions.length > 0) {
+          const confirmMessage = `You haven't completed Question${incompleteQuestions.length > 1 ? 's' : ''} ${incompleteQuestions.join(', ')}. Would you like to revisit ${incompleteQuestions.length > 1 ? 'them' : 'it'} before proceeding?`;
+          
+          if (window.confirm(confirmMessage)) {
+            // Navigate to the first incomplete question
+            handleRevisit(incompleteQuestions[0] - 1);
+            return;
+          }
+        }
+        
         router.push("/final");
       }
     }
@@ -473,8 +513,10 @@ export default function ActivitySelection() {
         // Show the activity selection screen
         <div className="w-full max-w-3xl text-center mb-8">
           <h2 className="text-2xl text-[#13294B] mb-6">
-            Choose the math activity you want to work on by clicking that box and click{" "}
-            <span className="font-bold text-[#FF5F05]">NEXT</span>
+            {lockedSelections[currentSet] 
+              ? "You have already chosen an activity for this section."
+              : "Choose the math activity you want to work on by clicking that box and click NEXT"
+            }
           </h2>
 
           <div className="flex flex-wrap gap-8 justify-center mb-8 w-full">
@@ -485,7 +527,7 @@ export default function ActivitySelection() {
               contentFontSize="1.5rem"
               isSelected={selections[currentSet] === "formal"}
               onSelect={() => handleActivitySelect("formal")}
-              disabled={false}
+              disabled={lockedSelections[currentSet]}
             />
 
             <HoverBoxSelectable
@@ -497,7 +539,7 @@ export default function ActivitySelection() {
               contentAlign="left"
               isSelected={selections[currentSet] === "word"}
               onSelect={() => handleActivitySelect("word")}
-              disabled={false}
+              disabled={lockedSelections[currentSet]}
             />
 
             <HoverBoxSelectable
@@ -507,16 +549,19 @@ export default function ActivitySelection() {
               isWide={true}
               isSelected={selections[currentSet] === "game"}
               onSelect={() => handleActivitySelect("game")}
-              disabled={false}
+              disabled={lockedSelections[currentSet]}
             />
           </div>
 
-          <button
-            onClick={handleNext}
-            className="bg-[#FF5F05] text-white font-bold py-4 px-8 rounded-lg shadow-lg hover:bg-[#F07249] text-2xl"
-          >
-            NEXT
-          </button>
+          {/* Always show NEXT button if there's a selection */}
+          {selections[currentSet] && (
+            <button
+              onClick={handleNext}
+              className="bg-[#FF5F05] text-white font-bold py-4 px-8 rounded-lg shadow-lg hover:bg-[#F07249] text-2xl"
+            >
+              NEXT
+            </button>
+          )}
         </div>
       )}
     </div>

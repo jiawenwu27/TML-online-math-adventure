@@ -67,11 +67,11 @@ export default function Games3({
       { id: 9, type: "answer", content: "168", direction: "bottom" },
   
       // Row 3
-      { id: 10, type: "question", content: "43 + 57 + 12 + 28", possibleanswerid: [11, 15], answer: [], next: [12, 20] },
-      { id: 11, type: "answer", content: "32", direction: "right" },
-      { id: 12, type: "question", content: "175 - 34 - 62 - 59", possibleanswerid: [16, 17, 18], answer: [16], next: [20, 22, 24] },
-      { id: 13, type: "answer", content: "15", direction: "left" },
-      { id: 14, type: "question", content: "83 + 27 + 12 + 58", possibleanswerid: [13, 19], answer: [19], next: [12, 24] },
+      { id: 10, type: "question", content: "43 + 57 + 12 + 28", possibleanswerid: [15], answer: [], next: [20] },
+      { id: 11, type: "answer", content: "32", direction: "left" },
+      { id: 12, type: "question", content: "175 - 34 - 62 - 59", possibleanswerid: [11 , 13, 16, 17, 18], answer: [16], next: [10, 14, 20, 22, 24] },
+      { id: 13, type: "answer", content: "15", direction: "right" },
+      { id: 14, type: "question", content: "83 + 27 + 12 + 58", possibleanswerid: [19], answer: [19], next: [24] },
   
       // Row 4
       { id: 15, type: "answer", content: "143", direction: "bottom" },
@@ -81,23 +81,23 @@ export default function Games3({
       { id: 19, type: "answer", content: "180", direction: "bottom" },
   
       // Row 5
-      { id: 20, type: "question", content: "82 + 15 + 23 + 37", possibleanswerid: [21, 25, 26], answer: [21], next: [22, 30, 32] },
+      { id: 20, type: "question", content: "82 + 15 + 23 + 37", possibleanswerid: [21, 25], answer: [21], next: [22, 30] },
       { id: 21, type: "answer", content: "157", direction: "right" },
-      { id: 22, type: "question", content: "125 - 48 - 36 - 24", possibleanswerid: [21, 27, 23], answer: [27], next: [20, 32, 24] },
-      { id: 23, type: "answer", content: "21", direction: "left" },
-      { id: 24, type: "question", content: "53 + 27 + 86 + 13", possibleanswerid: [23, 28, 29], answer: [29], next: [22, 32, 34] },
+      { id: 22, type: "question", content: "125 - 48 - 36 - 24", possibleanswerid: [26, 27, 23], answer: [27], next: [30, 32, 24] },
+      { id: 23, type: "answer", content: "21", direction: "right" },
+      { id: 24, type: "question", content: "53 + 27 + 86 + 13", possibleanswerid: [29], answer: [29], next: [34] },
   
       // Row 6
       { id: 25, type: "answer", content: "137", direction: "bottom" },
-      { id: 26, type: "answer", content: "149", direction: "bottom-right" },
+      { id: 26, type: "answer", content: "14", direction: "bottom-left" },
       { id: 27, type: "answer", content: "17", direction: "bottom" },
-      { id: 28, type: "answer", content: "152", direction: "bottom-left" },
+      { id: 28, type: "answer", content: "152", direction: "top-right" },
       { id: 29, type: "answer", content: "179", direction: "bottom" },
   
       // Row 7
       { id: 30, type: "question", content: "173 - 67 - 22 - 28", possibleanswerid: [25, 31], answer: [], next: [20, 32] },
       { id: 31, type: "answer", content: "56", direction: "right" },
-      { id: 32, type: "question", content: "67 + 54 + 29 + 11", possibleanswerid: [27, 33], answer: [33], next: [22, 34] },
+      { id: 32, type: "question", content: "67 + 54 + 29 + 11", possibleanswerid: [28, 33], answer: [33], next: [24, 34] },
       { id: 33, type: "answer", content: "161", direction: "right" },
       { id: 34, type: "castle", content: "🏰" }, // Castle at the end
     ];

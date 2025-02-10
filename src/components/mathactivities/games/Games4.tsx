@@ -50,6 +50,57 @@ interface Games4Props extends BaseActivityProps {
   onTrackBehavior: (behavior: UserBehavior) => void;
 }
 
+type Step = 'shopper' | 'total' | 'budget' | 'cashier' | 'change';
+
+interface StepComplete {
+  shopper: boolean;
+  total: boolean;
+  budget: boolean;
+  cashier: boolean;
+  change: boolean;
+}
+
+interface GameState {
+  messages: Record<string, string>;
+  stepComplete: StepComplete;
+  currentStep: Step;
+}
+
+// Define shopping lists and helper functions before the component
+const shoppingLists: ShoppingList[] = [
+  {
+    id: 1,
+    budget: 185,
+    items: [
+      { name: "Groceries", quantity: 1, price: 137 },
+      { name: "Fruits", quantity: 1, price: 58 },
+    ],
+    imagePath: "/img/game4-list1.png",
+  },
+  {
+    id: 2,
+    budget: 456,
+    items: [
+      { name: "Computer", quantity: 1, price: 277 },
+      { name: "Milk", quantity: 1, price: 18 },
+    ],
+    imagePath: "/img/game4-list2.png",
+  },
+  {
+    id: 3,
+    budget: 250,
+    items: [
+      { name: "Bear", quantity: 1, price: 69 },
+      { name: "Car", quantity: 1, price: 128 },
+    ],
+    imagePath: "/img/game4-list3.png",
+  },
+];
+
+const calculateTotal = (items: { quantity: number; price: number }[]) => {
+  return items.reduce((sum, item) => sum + item.quantity * item.price, 0);
+};
+
 export default function Games4({ 
   onBack, 
   onComplete, 
@@ -57,86 +108,112 @@ export default function Games4({
   onSaveAnswers,
   onTrackBehavior
 }: Games4Props) {
-  const [answers, setAnswers] = useState<Record<number, ListAnswers>>(
-    savedAnswers?.answers ?? {}
-  );
-  const [messages, setMessages] = useState<Record<string, string>>(
-    savedAnswers?.messages ?? {}
-  );
   const [currentList, setCurrentList] = useState<number>(
     savedAnswers?.currentList ?? 1
   );
-  const [gameComplete, setGameComplete] = useState<boolean>(
-    savedAnswers?.gameComplete ?? false
+
+  const [answers, setAnswers] = useState<Record<number, ListAnswers>>(
+    savedAnswers?.answers ?? {}
   );
-  const [currentStep, setCurrentStep] = useState<'shopper' | 'total' | 'budget' | 'cashier' | 'change'>('shopper');
-  const [stepComplete, setStepComplete] = useState({
-    shopper: false,
-    total: false,
-    budget: false,
-    cashier: false,
-    change: false
+
+  const [isReturnVisit] = useState(() => {
+    return !!(savedAnswers && savedAnswers.answers && Object.keys(savedAnswers.answers).length > 0);
   });
 
-  // Add this useEffect to save state when it changes
-  useEffect(() => {
-    if (answers[currentList]) {
-      const { totalAmount, changeAmount } = answers[currentList];
-      if (totalAmount || changeAmount) {
-        onSaveAnswers({
-          answers,
-          gameComplete
-        });
-      }
+  // Initialize game state from savedAnswers
+  const initializeGameState = (): GameState => {
+    if (!savedAnswers?.answers || !savedAnswers.answers[currentList]) {
+      return {
+        messages: {},
+        stepComplete: {
+          shopper: false,
+          total: false,
+          budget: false,
+          cashier: false,
+          change: false
+        },
+        currentStep: 'shopper'
+      };
     }
-  }, [answers]);
 
-  // Add this useEffect to reset steps when currentList changes
-  useEffect(() => {
-    setCurrentStep('shopper');
-    setStepComplete({
+    const currentAnswers = savedAnswers.answers[currentList];
+    const msgs: Record<string, string> = {};
+    const steps: StepComplete = {
       shopper: false,
       total: false,
       budget: false,
       cashier: false,
       change: false
-    });
-    setMessages({});
-  }, [currentList]);
+    };
+    
+    const currentShoppingList = shoppingLists[currentList - 1];
+    const total = calculateTotal(currentShoppingList.items);
+    const hasEnough = total <= currentShoppingList.budget;
+    const correctChange = Math.abs(currentShoppingList.budget - total);
 
-  const shoppingLists: ShoppingList[] = [
-    {
-      id: 1,
-      budget: 185,
-      items: [
-        { name: "Groceries", quantity: 1, price: 137 },
-        { name: "Fruits", quantity: 1, price: 58 },
-      ],
-      imagePath: "/img/game4-list1.png",
-    },
-    {
-      id: 2,
-      budget: 456,
-      items: [
-        { name: "Computer", quantity: 1, price: 277 },
-        { name: "Milk", quantity: 1, price: 18 },
-      ],
-      imagePath: "/img/game4-list2.png",
-    },
-    {
-      id: 3,
-      budget: 250,
-      items: [
-        { name: "Bear", quantity: 1, price: 69 },
-        { name: "Car", quantity: 1, price: 128 },
-      ],
-      imagePath: "/img/game4-list3.png",
-    },
-  ];
+    // Validate and set completion status for each step
+    if (currentAnswers.shopperRole) {
+      msgs.shopper = "Role selected!";
+      steps.shopper = true;
+    }
 
-  const calculateTotal = (items: { quantity: number; price: number }[]) => {
-    return items.reduce((sum, item) => sum + item.quantity * item.price, 0);
+    if (currentAnswers.totalAmount) {
+      if (parseInt(currentAnswers.totalAmount) === total) {
+        msgs.total = "Correct! Now, let's check if there's enough budget.";
+        steps.total = true;
+      }
+    }
+
+    if (currentAnswers.hasEnoughBudget !== null) {
+      if (currentAnswers.hasEnoughBudget === hasEnough) {
+        msgs.budget = "Correct! Now let's select who will be the cashier.";
+        steps.budget = true;
+      }
+    }
+
+    if (currentAnswers.cashierRole) {
+      msgs.cashier = "Cashier selected!";
+      steps.cashier = true;
+    }
+
+    if (currentAnswers.changeAmount) {
+      if (parseInt(currentAnswers.changeAmount) === correctChange) {
+        msgs.change = "Correct!";
+        steps.change = true;
+      }
+    }
+
+    // Determine current step based on completion
+    let currentStep: Step = 'shopper';
+    if (steps.shopper) currentStep = 'total';
+    if (steps.total) currentStep = 'budget';
+    if (steps.budget) currentStep = 'cashier';
+    if (steps.cashier) currentStep = 'change';
+
+    return { messages: msgs, stepComplete: steps, currentStep };
   };
+
+  const initialState = initializeGameState();
+  const [messages, setMessages] = useState<Record<string, string>>(initialState.messages);
+  const [stepComplete, setStepComplete] = useState<StepComplete>(initialState.stepComplete);
+  const [currentStep, setCurrentStep] = useState<Step>(initialState.currentStep);
+  const [gameComplete, setGameComplete] = useState<boolean>(savedAnswers?.gameComplete ?? false);
+
+  // Save state whenever it changes
+  useEffect(() => {
+    onSaveAnswers({
+      answers,
+      gameComplete
+    });
+  }, [answers, currentList, messages, stepComplete, gameComplete]);
+
+  // Reset state when changing lists
+  useEffect(() => {
+    const newState = initializeGameState();
+    setMessages(newState.messages);
+    setStepComplete(newState.stepComplete);
+    setCurrentStep(newState.currentStep);
+  }, [currentList]);
 
   const trackBehavior = (behavior: string, input: string, result: string) => {
     onTrackBehavior({

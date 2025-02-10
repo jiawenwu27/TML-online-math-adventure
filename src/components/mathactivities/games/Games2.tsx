@@ -74,8 +74,22 @@ export default function Games2({
     { value: null, question: '25 + 35 + 48 = ?', answer: 108 }
   ];
 
-  const convertArrayToGameState = (answers: number[][]): GameState => {
-    const defaultState: GameState = {
+  // Initialize state from savedAnswers if available
+  const [gameState, setGameState] = useState<GameState>(() => {
+    if (savedAnswers && savedAnswers.board) {
+      return {
+        board: savedAnswers.board,
+        playerSymbol: savedAnswers.playerSymbol,
+        childSymbol: savedAnswers.childSymbol,
+        currentPlayer: savedAnswers.currentPlayer,
+        selectedSquare: null,
+        answer: '',
+        message: '',
+        gameComplete: savedAnswers.gameComplete,
+        userInputs: Array(3).fill(null).map(() => Array(3).fill(null))
+      };
+    }
+    return {
       board: initialBoard,
       playerSymbol: null,
       childSymbol: null,
@@ -86,40 +100,32 @@ export default function Games2({
       gameComplete: false,
       userInputs: Array(3).fill(null).map(() => Array(3).fill(null))
     };
-
-    if (!answers || answers.length === 0) return defaultState;
-
-    return {
-      ...defaultState,
-      userInputs: answers
-    };
-  };
-
-  const convertGameStateToArray = (state: GameState): number[][] => {
-    return state.userInputs.map(row => row.map(input => input ?? 0));
-  };
-
-  const [gameState, setGameState] = useState<GameState>(
-    convertArrayToGameState(Array(3).fill(Array(3).fill(0)))
-  );
+  });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Save state whenever important game state changes
   useEffect(() => {
-    if (gameState.answer && !isNaN(parseInt(gameState.answer))) {
+    if (gameState.playerSymbol !== null || gameState.gameComplete) {
       onSaveAnswers({
-        currentSquare: gameState.selectedSquare,
-        question: gameState.board[gameState.selectedSquare || 0].question,
-        correctAnswer: gameState.board[gameState.selectedSquare || 0].answer,
-        currentPlayer: gameState.currentPlayer,
-        userInput: gameState.answer,
         board: gameState.board,
         playerSymbol: gameState.playerSymbol,
         childSymbol: gameState.childSymbol,
-        gameComplete: gameState.gameComplete
+        currentPlayer: gameState.currentPlayer,
+        gameComplete: gameState.gameComplete,
+        currentSquare: null,
+        question: '',
+        correctAnswer: 0,
+        userInput: ''
       });
     }
-  }, [gameState.answer]);
+  }, [
+    gameState.board,
+    gameState.playerSymbol,
+    gameState.childSymbol,
+    gameState.currentPlayer,
+    gameState.gameComplete
+  ]);
 
   const updateGameState = (updates: Partial<GameState>) => {
    
@@ -212,7 +218,7 @@ export default function Games2({
 
         const winner = checkWinner(newBoard);
         if (winner === 'tie') {
-          const winMessage = "It’s a tie! Both of you played brilliantly—no winners or losers this time. 🎉🎉 Great job, team! 🎉🎉";
+          const winMessage = "It's a tie! Both of you played brilliantly—no winners or losers this time. 🎉🎉 Great job, team! 🎉🎉";
           updateGameState({
             board: newBoard,
             message: winMessage,
@@ -298,6 +304,11 @@ export default function Games2({
                   playerSymbol: 'cross',
                   childSymbol: 'circle'
                 });
+                trackBehavior(
+                  "click",
+                  "select-symbol:circle",
+                  "child-selected:circle"
+                );
               }}
               className="w-24 h-24 flex items-center justify-center"
             >
@@ -309,6 +320,11 @@ export default function Games2({
                   playerSymbol: 'circle',
                   childSymbol: 'cross'
                 });
+                trackBehavior(
+                  "click",
+                  "select-symbol:cross",
+                  "child-selected:cross"
+                );
               }}
               className="w-24 h-24 flex items-center justify-center"
             >

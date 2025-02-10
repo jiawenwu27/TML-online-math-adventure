@@ -64,7 +64,7 @@ export default function Word4({
     setHasAttempted(newHasAttempted);
 
     await onLogBehavior(
-      "word4-first-question",
+      "word4-question-1",
       "click",
       `check-answer-button:${answers.slice(0, 3).join(',')}`,
       correct ? "correct" : "incorrect"
@@ -92,7 +92,7 @@ export default function Word4({
     setHasAttempted(newHasAttempted);
 
     await onLogBehavior(
-      `word4-question-${questionIndex}`,
+      `word4-question-${questionIndex + 1}`,
       "click",
       `check-answer-button:${userAnswer}`,
       correct ? "correct" : "incorrect"
