@@ -50,6 +50,57 @@ interface Games4Props extends BaseActivityProps {
   onTrackBehavior: (behavior: UserBehavior) => void;
 }
 
+type Step = 'shopper' | 'total' | 'budget' | 'cashier' | 'change';
+
+interface StepComplete {
+  shopper: boolean;
+  total: boolean;
+  budget: boolean;
+  cashier: boolean;
+  change: boolean;
+}
+
+interface GameState {
+  messages: Record<string, string>;
+  stepComplete: StepComplete;
+  currentStep: Step;
+}
+
+// Define shopping lists and helper functions before the component
+const shoppingLists: ShoppingList[] = [
+  {
+    id: 1,
+    budget: 185,
+    items: [
+      { name: "Groceries", quantity: 1, price: 137 },
+      { name: "Fruits", quantity: 1, price: 58 },
+    ],
+    imagePath: "/img/game4-list1.png",
+  },
+  {
+    id: 2,
+    budget: 456,
+    items: [
+      { name: "Computer", quantity: 1, price: 277 },
+      { name: "Milk", quantity: 1, price: 18 },
+    ],
+    imagePath: "/img/game4-list2.png",
+  },
+  {
+    id: 3,
+    budget: 250,
+    items: [
+      { name: "Bear", quantity: 1, price: 69 },
+      { name: "Car", quantity: 1, price: 128 },
+    ],
+    imagePath: "/img/game4-list3.png",
+  },
+];
+
+const calculateTotal = (items: { quantity: number; price: number }[]) => {
+  return items.reduce((sum, item) => sum + item.quantity * item.price, 0);
+};
+
 export default function Games4({ 
   onBack, 
   onComplete, 
@@ -57,65 +108,112 @@ export default function Games4({
   onSaveAnswers,
   onTrackBehavior
 }: Games4Props) {
-  const [answers, setAnswers] = useState<Record<number, ListAnswers>>(
-    savedAnswers?.answers ?? {}
-  );
-  const [messages, setMessages] = useState<Record<string, string>>(
-    savedAnswers?.messages ?? {}
-  );
   const [currentList, setCurrentList] = useState<number>(
     savedAnswers?.currentList ?? 1
   );
-  const [gameComplete, setGameComplete] = useState<boolean>(
-    savedAnswers?.gameComplete ?? false
+
+  const [answers, setAnswers] = useState<Record<number, ListAnswers>>(
+    savedAnswers?.answers ?? {}
   );
 
-  // Add this useEffect to save state when it changes
-  useEffect(() => {
-    if (answers[currentList]) {
-      const { totalAmount, changeAmount } = answers[currentList];
-      if (totalAmount || changeAmount) {
-        onSaveAnswers({
-          answers,
-          gameComplete
-        });
+  const [isReturnVisit] = useState(() => {
+    return !!(savedAnswers && savedAnswers.answers && Object.keys(savedAnswers.answers).length > 0);
+  });
+
+  // Initialize game state from savedAnswers
+  const initializeGameState = (): GameState => {
+    if (!savedAnswers?.answers || !savedAnswers.answers[currentList]) {
+      return {
+        messages: {},
+        stepComplete: {
+          shopper: false,
+          total: false,
+          budget: false,
+          cashier: false,
+          change: false
+        },
+        currentStep: 'shopper'
+      };
+    }
+
+    const currentAnswers = savedAnswers.answers[currentList];
+    const msgs: Record<string, string> = {};
+    const steps: StepComplete = {
+      shopper: false,
+      total: false,
+      budget: false,
+      cashier: false,
+      change: false
+    };
+    
+    const currentShoppingList = shoppingLists[currentList - 1];
+    const total = calculateTotal(currentShoppingList.items);
+    const hasEnough = total <= currentShoppingList.budget;
+    const correctChange = Math.abs(currentShoppingList.budget - total);
+
+    // Validate and set completion status for each step
+    if (currentAnswers.shopperRole) {
+      msgs.shopper = "Role selected!";
+      steps.shopper = true;
+    }
+
+    if (currentAnswers.totalAmount) {
+      if (parseInt(currentAnswers.totalAmount) === total) {
+        msgs.total = "Correct! Now, let's check if there's enough budget.";
+        steps.total = true;
       }
     }
-  }, [answers]);
 
-  const shoppingLists: ShoppingList[] = [
-    {
-      id: 1,
-      budget: 185,
-      items: [
-        { name: "Groceries", quantity: 1, price: 137 },
-        { name: "Fruits", quantity: 1, price: 58 },
-      ],
-      imagePath: "/img/game4-list1.png",
-    },
-    {
-      id: 2,
-      budget: 456,
-      items: [
-        { name: "Computer", quantity: 1, price: 277 },
-        { name: "Milk", quantity: 1, price: 18 },
-      ],
-      imagePath: "/img/game4-list2.png",
-    },
-    {
-      id: 3,
-      budget: 250,
-      items: [
-        { name: "Bear", quantity: 1, price: 69 },
-        { name: "Car", quantity: 1, price: 128 },
-      ],
-      imagePath: "/img/game4-list3.png",
-    },
-  ];
+    if (currentAnswers.hasEnoughBudget !== null) {
+      if (currentAnswers.hasEnoughBudget === hasEnough) {
+        msgs.budget = "Correct! Now let's select who will be the cashier.";
+        steps.budget = true;
+      }
+    }
 
-  const calculateTotal = (items: { quantity: number; price: number }[]) => {
-    return items.reduce((sum, item) => sum + item.quantity * item.price, 0);
+    if (currentAnswers.cashierRole) {
+      msgs.cashier = "Cashier selected!";
+      steps.cashier = true;
+    }
+
+    if (currentAnswers.changeAmount) {
+      if (parseInt(currentAnswers.changeAmount) === correctChange) {
+        msgs.change = "Correct!";
+        steps.change = true;
+      }
+    }
+
+    // Determine current step based on completion
+    let currentStep: Step = 'shopper';
+    if (steps.shopper) currentStep = 'total';
+    if (steps.total) currentStep = 'budget';
+    if (steps.budget) currentStep = 'cashier';
+    if (steps.cashier) currentStep = 'change';
+
+    return { messages: msgs, stepComplete: steps, currentStep };
   };
+
+  const initialState = initializeGameState();
+  const [messages, setMessages] = useState<Record<string, string>>(initialState.messages);
+  const [stepComplete, setStepComplete] = useState<StepComplete>(initialState.stepComplete);
+  const [currentStep, setCurrentStep] = useState<Step>(initialState.currentStep);
+  const [gameComplete, setGameComplete] = useState<boolean>(savedAnswers?.gameComplete ?? false);
+
+  // Save state whenever it changes
+  useEffect(() => {
+    onSaveAnswers({
+      answers,
+      gameComplete
+    });
+  }, [answers, currentList, messages, stepComplete, gameComplete]);
+
+  // Reset state when changing lists
+  useEffect(() => {
+    const newState = initializeGameState();
+    setMessages(newState.messages);
+    setStepComplete(newState.stepComplete);
+    setCurrentStep(newState.currentStep);
+  }, [currentList]);
 
   const trackBehavior = (behavior: string, input: string, result: string) => {
     onTrackBehavior({
@@ -160,6 +258,8 @@ export default function Games4({
 
     if (parseInt(currentAnswer) === correctTotal) {
       setMessages(prev => ({...prev, total: "Correct! Now, let's check if there's enough budget."}));
+      setStepComplete(prev => ({ ...prev, total: true }));
+      setCurrentStep('budget');
     } else {
       setMessages(prev => ({...prev, total: "That's not correct. Try calculating again!"}));
     }
@@ -177,6 +277,8 @@ export default function Games4({
 
     if (answer === hasEnough) {
       setMessages(prev => ({...prev, budget: "Correct! Now let's select who will be the cashier."}));
+      setStepComplete(prev => ({ ...prev, budget: true }));
+      setCurrentStep('cashier');
     } else {
       setMessages(prev => ({...prev, budget: "That's not correct. Think about it again!"}));
     }
@@ -188,40 +290,46 @@ export default function Games4({
     const correctChange = Math.abs(currentShoppingList.budget - total);
 
     if (parseInt(answers[currentList]?.changeAmount) === correctChange) {
+      setMessages(prev => ({...prev, change: "Correct!"}));
+      setStepComplete(prev => ({ ...prev, change: true }));
       if (currentList === 3) {
         setGameComplete(true);
       }
-      setMessages(prev => ({...prev, change: "Correct!"}));
     } else {
       setMessages(prev => ({...prev, change: "That's not correct. Try calculating again!"}));
     }
   };
 
-  const resetStage = () => {
-    setAnswers(prev => ({
-      ...prev,
-      [currentList]: {
-        ...prev[currentList],
-        shopperRole: null,
-        cashierRole: null,
-        totalAmount: "",
-        hasEnoughBudget: null,
-        changeAmount: ""
-      }
-    }));
-    setMessages({});
-  };
 
   const handleRoleSelect = async (role: Role, type: 'shopper' | 'cashier') => {
+    // Check if the other role is already taken by the selected role
+    const otherType = type === 'shopper' ? 'cashierRole' : 'shopperRole';
+    if (answers[currentList]?.[otherType] === role) {
+      setMessages(prev => ({
+        ...prev,
+        [type]: "Each person can only have one role. Please choose different roles for parent and child."
+      }));
+      return;
+    }
+
     trackBehavior(
       "select",
       `${type}-role`,
       role ?? 'none'
     );
+
     setAnswers(prev => ({
       ...prev,
       [currentList]: { ...prev[currentList], [type === 'shopper' ? 'shopperRole' : 'cashierRole']: role }
     }));
+
+    if (type === 'shopper') {
+      setStepComplete(prev => ({ ...prev, shopper: true }));
+      setCurrentStep('total');
+    } else {
+      setStepComplete(prev => ({ ...prev, cashier: true }));
+      setCurrentStep('change');
+    }
   };
 
   const renderContent = () => {
@@ -230,10 +338,10 @@ export default function Games4({
     return (
       <div className="bg-white p-8 rounded-lg shadow-lg text-center w-full max-w-3xl">
         <h1 
-        className="text-4xl mb-6 font-bold text-[#13294B] text-center"
-        style={{ fontFamily: "Chalkduster, fantasy" }}>
+          className="text-4xl mb-6 font-bold text-[#13294B] text-center"
+          style={{ fontFamily: "Chalkduster, fantasy" }}>
           Eugene's Shopping Spree
-          </h1>
+        </h1>
         <p className="text-xl mb-4 text-start">
           Join Eugene's Shopping Spree! Take turns as the shopper or cashier to practice adding up items, staying under budget, and giving the right change. Grab your baskets—let's get shopping!
         </p>
@@ -243,132 +351,144 @@ export default function Games4({
           className="mx-auto mb-4 w-[30rem] h-auto"
         />
 
-        {/* Shopper Role Selection */}
-        <div className="mb-8">
-          <h3 className="text-2xl mb-4 text-left">Who will be the shopper?</h3>
-          <div className="flex justify-center gap-8 ">
-            {["parent", "child"].map((role) => (
-              <button
-                key={role}
-                onClick={() => handleRoleSelect(role as Role, 'shopper')}
-                className={`flex flex-col items-center ${
-                  answers[currentList]?.shopperRole === role ? "ring-4 ring-[#FF5F05] rounded-lg" : ""
-                }`}
-              >
-                <img
-                  src={`/img/game4-${role}.png`}
-                  alt={role}
-                  className="w-32 h-auto"
-                />
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Shopper Questions */}
-        <div className="mb-8">
-          <p className="text-2xl mb-4 text-left">How much do I need to buy all items?</p>
-          <div className="flex items-center justify-start gap-4">
-            <input
-              type="number"
-              value={answers[currentList]?.totalAmount || ""}
-              onChange={(e) => handleTotalAmountChange(e.target.value)}
-              onWheel={(e) => (e.target as HTMLInputElement).blur()}
-              className="border-2 border-gray-300 rounded-lg px-4 py-2"
-              placeholder="Enter amount"
-              style={{ WebkitAppearance: 'none', MozAppearance: 'textfield' }}
-            />
-            <button
-              onClick={checkTotalAmount}
-              className="bg-[#FF5F05] text-white px-6 py-2 rounded-lg"
-            >
-              Check
-            </button>
-          </div>
-          {messages.total && (
-            <p className={`mt-2 ${messages.total.includes("Correct") ? "text-green-600" : "text-red-600"}`}>
-              {messages.total}
-            </p>
+        <div className="space-y-8">
+          {(currentStep === 'shopper' || stepComplete.shopper) && (
+            <div className="mb-8">
+              <h3 className="text-2xl mb-4 text-left">Who will be the shopper?</h3>
+              <div className="flex justify-center gap-8">
+                {["parent", "child"].map((role) => (
+                  <button
+                    key={role}
+                    onClick={() => !stepComplete.shopper && handleRoleSelect(role as Role, 'shopper')}
+                    className={`flex flex-col items-center ${
+                      answers[currentList]?.shopperRole === role ? "ring-4 ring-[#FF5F05] rounded-lg" : ""
+                    } ${stepComplete.shopper ? "cursor-default" : "cursor-pointer"}`}
+                    disabled={stepComplete.shopper}
+                  >
+                    <img
+                      src={`/img/game4-${role}.png`}
+                      alt={role}
+                      className="w-32 h-auto"
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
           )}
-        </div>
 
-        {/* Budget Question */}
-        <div className="mb-8">
-          <p className="text-2xl mb-4 text-left">
-            Do I have enough money in my budget to buy everything?
-          </p>
-          <div className="flex justify-start gap-4">
-            {["YES", "NO"].map((option) => (
-              <button
-                key={option}
-                onClick={() => checkBudgetAnswer(option === "YES")}
-                className={`px-6 py-2 rounded-lg ${
-                  answers[currentList]?.hasEnoughBudget === (option === "YES")
-                    ? messages.budget?.includes("Correct")
-                      ? "bg-green-500 text-white"
-                      : "bg-red-500 text-white"
-                    : "bg-[#FF5F05] text-white"
-                }`}
-              >
-                {option}
-              </button>
-            ))}
-          </div>
-          {messages.budget && (
-            <p className={`mt-2 ${messages.budget.includes("Correct") ? "text-green-600" : "text-red-600"}`}>
-              {messages.budget}
-            </p>
-          )}
-        </div>
-
-        <hr className="border-t-2 border-gray-200 my-8" />
-
-        {/* Cashier Role Selection */}
-        <div className="mb-8">
-          <h3 className="text-2xl mb-4 text-left">Who will be the cashier?</h3>
-          <div className="flex justify-center gap-8">
-            {["parent", "child"].map((role) => (
-              <button
-                key={role}
-                onClick={() => handleRoleSelect(role as Role, 'cashier')}
-                className={`flex flex-col items-center ${
-                  answers[currentList]?.cashierRole === role ? "ring-4 ring-[#FF5F05] rounded-lg" : ""
-                }`}
-              >
-                <img
-                  src={`/img/game4-${role}.png`}
-                  alt={role}
-                  className="w-32 h-auto"
+          {((currentStep === 'total' && stepComplete.shopper) || stepComplete.total) && (
+            <div className="mb-8">
+              <p className="text-2xl mb-4 text-left">How much do I need to buy all items?</p>
+              <div className="flex items-center justify-start gap-4">
+                <input
+                  type="number"
+                  value={answers[currentList]?.totalAmount || ""}
+                  onChange={(e) => handleTotalAmountChange(e.target.value)}
+                  onWheel={(e) => (e.target as HTMLInputElement).blur()}
+                  className="border-2 border-gray-300 rounded-lg px-4 py-2"
+                  placeholder="Enter amount"
+                  style={{ WebkitAppearance: 'none', MozAppearance: 'textfield' }}
+                  disabled={stepComplete.total}
                 />
-              </button>
-            ))}
-          </div>
-        </div>
+                <button
+                  onClick={checkTotalAmount}
+                  className="bg-[#FF5F05] text-white px-6 py-2 rounded-lg"
+                  disabled={stepComplete.total}
+                >
+                  Check
+                </button>
+              </div>
+              {messages.total && (
+                <p className={`mt-2 ${messages.total.includes("Correct") ? "text-green-600" : "text-red-600"}`}>
+                  {messages.total}
+                </p>
+              )}
+            </div>
+          )}
 
-        {/* Cashier Question */}
-        <div className="mb-8">
-          <p className="text-2xl mb-4 text-left">
-            Eugene gave me all her budget money for this shopping list. How much change should I give her back?/How much does she owe?
-          </p>
-          <input
-            type="number"
-            value={answers[currentList]?.changeAmount || ""}
-            onChange={(e) => handleChangeAmountChange(e.target.value)}
-            onWheel={(e) => (e.target as HTMLInputElement).blur()}
-            className="border-2 border-gray-300 rounded-lg px-4 py-2 mr-4"
-            placeholder="Enter change amount"
-            style={{ WebkitAppearance: 'none', MozAppearance: 'textfield' }}
-          />
-          <button
-            onClick={checkChangeAmount}
-            className="bg-[#FF5F05] text-white px-6 py-2 rounded-lg"
-          >
-            Check
-          </button>
-          {messages.change && (
-            <p className={`mt-2 ${messages.change.includes("Correct") ? "text-green-600" : "text-red-600"}`}>
-              {messages.change}
-            </p>
+          {((currentStep === 'budget' && stepComplete.total) || stepComplete.budget) && (
+            <div className="mb-8">
+              <p className="text-2xl mb-4 text-left">
+                Do I have enough money in my budget to buy everything?
+              </p>
+              <div className="flex justify-start gap-4">
+                {["YES", "NO"].map((option) => (
+                  <button
+                    key={option}
+                    onClick={() => !stepComplete.budget && checkBudgetAnswer(option === "YES")}
+                    className={`px-6 py-2 rounded-lg ${
+                      answers[currentList]?.hasEnoughBudget === (option === "YES")
+                        ? messages.budget?.includes("Correct")
+                          ? "bg-green-500 text-white"
+                          : "bg-red-500 text-white"
+                        : "bg-[#FF5F05] text-white"
+                    }`}
+                    disabled={stepComplete.budget}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+              {messages.budget && (
+                <p className={`mt-2 ${messages.budget.includes("Correct") ? "text-green-600" : "text-red-600"}`}>
+                  {messages.budget}
+                </p>
+              )}
+            </div>
+          )}
+
+          {((currentStep === 'cashier' && stepComplete.budget) || stepComplete.cashier) && (
+            <div className="mb-8">
+              <h3 className="text-2xl mb-4 text-left">Who will be the cashier?</h3>
+              <div className="flex justify-center gap-8">
+                {["parent", "child"].map((role) => (
+                  <button
+                    key={role}
+                    onClick={() => !stepComplete.cashier && handleRoleSelect(role as Role, 'cashier')}
+                    className={`flex flex-col items-center ${
+                      answers[currentList]?.cashierRole === role ? "ring-4 ring-[#FF5F05] rounded-lg" : ""
+                    } ${stepComplete.cashier ? "cursor-default" : "cursor-pointer"}`}
+                    disabled={stepComplete.cashier}
+                  >
+                    <img
+                      src={`/img/game4-${role}.png`}
+                      alt={role}
+                      className="w-32 h-auto"
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {((currentStep === 'change' && stepComplete.cashier) || stepComplete.change) && (
+            <div className="mb-8">
+              <p className="text-2xl mb-4 text-left">
+                Eugene gave me all her budget money for this shopping list. How much change should I give her back?/How much does she owe?
+              </p>
+              <input
+                type="number"
+                value={answers[currentList]?.changeAmount || ""}
+                onChange={(e) => handleChangeAmountChange(e.target.value)}
+                onWheel={(e) => (e.target as HTMLInputElement).blur()}
+                className="border-2 border-gray-300 rounded-lg px-4 py-2 mr-4"
+                placeholder="Enter change amount"
+                style={{ WebkitAppearance: 'none', MozAppearance: 'textfield' }}
+                disabled={stepComplete.change}
+              />
+              <button
+                onClick={checkChangeAmount}
+                className="bg-[#FF5F05] text-white px-6 py-2 rounded-lg"
+                disabled={stepComplete.change}
+              >
+                Check
+              </button>
+              {messages.change && (
+                <p className={`mt-2 ${messages.change.includes("Correct") ? "text-green-600" : "text-red-600"}`}>
+                  {messages.change}
+                </p>
+              )}
+            </div>
           )}
         </div>
       </div>
@@ -385,8 +505,14 @@ export default function Games4({
     const hasEnough = total <= currentShoppingList.budget;
 
     return (
+      stepComplete.shopper &&
+      stepComplete.total &&
+      stepComplete.budget &&
+      stepComplete.cashier &&
+      stepComplete.change &&
       currentAnswers.shopperRole &&
       currentAnswers.cashierRole &&
+      currentAnswers.shopperRole !== currentAnswers.cashierRole &&
       parseInt(currentAnswers.totalAmount) === total &&
       currentAnswers.hasEnoughBudget === hasEnough &&
       parseInt(currentAnswers.changeAmount) === correctChange

@@ -29,6 +29,7 @@ export default function Word3({
       ),
       correctAnswer: 133,
       image: "/img/word3-snacks.png",
+      hint: "Think of each item group (cookies, sandwiches, juice boxes, apples). Add all four numbers together to find the total snacks. If you're stuck, try adding two numbers first, then add the next two, and finally add those sums together!"
     },
     {
       question: (
@@ -39,6 +40,7 @@ export default function Word3({
       ),
       correctAnswer: 19,
       image: "/img/word3-treasure.png",
+      hint: "First, add up how much Sarah spent: $23, $57, and $46. Next, subtract that total from the $145 she started with. That difference tells you how much treasure money she has left!"
     },
     {
       question: (
@@ -49,8 +51,13 @@ export default function Word3({
       ),
       correctAnswer: 176,
       image: "/img/word3-animalsbooks.png",
+      hint: "To find the total number of books, add the amounts brought by each animal: 55, 26, 33, and 62. Combine them one step at a time, or all at once if you're comfortable with bigger sums!"
     },
   ];
+
+  // Add state for showing hints and tracking attempts
+  const [showHints, setShowHints] = useState<boolean[]>(Array(questions.length).fill(false));
+  const [hasAttempted, setHasAttempted] = useState<boolean[]>(Array(questions.length).fill(false));
 
   // Initialize answers with empty strings and isCorrect with null if they're empty
   const answers = propAnswers.length ? propAnswers : Array(questions.length).fill("");
@@ -60,11 +67,25 @@ export default function Word3({
     const updatedAnswers = [...answers];
     updatedAnswers[index] = value;
     onAnswersChange(updatedAnswers);
+
+    if (value) {
+      onLogBehavior(
+        `word3-question-${index + 1}`,
+        "input",
+        `user-input:${value}`,
+        "in-progress"
+      );
+    }
   };
 
   const checkAnswer = async (index: number) => {
     const userAnswer = parseInt(answers[index]);
     const correct = userAnswer === questions[index].correctAnswer;
+
+    // Mark question as attempted
+    const newHasAttempted = [...hasAttempted];
+    newHasAttempted[index] = true;
+    setHasAttempted(newHasAttempted);
 
     await onLogBehavior(
       `word3-question-${index + 1}`,
@@ -76,6 +97,19 @@ export default function Word3({
     const updatedIsCorrect = [...isCorrect];
     updatedIsCorrect[index] = correct;
     onCorrectChange(updatedIsCorrect);
+  };
+
+  const toggleHint = async (index: number) => {
+    const newShowHints = [...showHints];
+    newShowHints[index] = !newShowHints[index];
+    setShowHints(newShowHints);
+
+    await onLogBehavior(
+      `word3-question-${index + 1}`,
+      "click",
+      `hint-button:${newShowHints[index] ? 'show' : 'hide'}`,
+      "hint-interaction"
+    );
   };
 
   const handleNext = async () => {
@@ -112,8 +146,26 @@ export default function Word3({
                   className="w-auto h-[14rem] rounded-lg ml-4"
                 />
               </div>
+
+              {/* Only show hint button after first incorrect attempt */}
+              {hasAttempted[index] && isCorrect[index] === false && (
+                <div className="mb-4">
+                  <button
+                    onClick={() => toggleHint(index)}
+                    className="bg-[#13294B] text-white px-4 py-1 rounded-lg text-sm mr-2"
+                  >
+                    {showHints[index] ? 'Hide Hint' : 'Show Hint'}
+                  </button>
+                  {showHints[index] && (
+                    <div className="mt-2 text-[#13294B] bg-blue-100 p-3 rounded-lg">
+                      💡 {q.hint}
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="flex items-center">
-              <input
+                <input
                   type="number"
                   value={answers[index]}
                   onChange={(e) => handleInputChange(index, e.target.value)}
@@ -131,7 +183,7 @@ export default function Word3({
               </div>
               {isCorrect[index] !== null && (
                 <div
-                  className={`mt-2 text-lg ${
+                  className={`mt-2 text-xl ${
                     isCorrect[index] ? "text-green-600" : "text-red-600"
                   }`}
                 >
@@ -141,7 +193,6 @@ export default function Word3({
             </div>
           ))}
 
-          {/* Next Button */}
           <button
             onClick={handleNext}
             className="bg-[#FF5F05] text-white px-6 py-2 rounded-lg mt-4"

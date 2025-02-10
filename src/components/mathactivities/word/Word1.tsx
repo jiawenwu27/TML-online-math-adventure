@@ -24,18 +24,25 @@ export default function Word1({
       question: "Sally baked 24 cookies for the party tonight. Katy brought 27 cookies. How many cookies do they have altogether for the party?",
       correctAnswer: 51,
       image: "/img/word1-cookies.png",
+      hint: "\"altogether\" means adding both numbers. Think about how many cookies Sally has (24) and how many Katy has (27), then combine them!"
     },
     {
       question: "Anna read 56 books this month. John read 38 books. How many books did they read altogether?",
       correctAnswer: 94,
       image: "/img/word1-books.png",
+      hint: "\"altogether\" means adding both numbers. Think about how many book Anna read (56) and how many John read (38), then combine them!"
     },
     {
       question: "The pet store had 67 cats. 29 cats were adopted. How many cats are left at the pet store?",
       correctAnswer: 38,
       image: "/img/word1-cats.png",
+      hint: "Since 29 cats left the pet store, you'll need to subtract 29 from the total of 67 to find out how many cats are still there. Remember: Total – Adopted = Left in the store."
     },
   ];
+
+  // Add state for showing hints and tracking attempts
+  const [showHints, setShowHints] = useState<boolean[]>(Array(questions.length).fill(false));
+  const [hasAttempted, setHasAttempted] = useState<boolean[]>(Array(questions.length).fill(false));
 
   // Initialize answers with empty strings and isCorrect with null if they're empty
   const answers = propAnswers.length ? propAnswers : Array(questions.length).fill("");
@@ -46,7 +53,6 @@ export default function Word1({
     updatedAnswers[index] = value;
     onAnswersChange(updatedAnswers);
 
-    // Log each complete input value
     if (value) {
       onLogBehavior(
         `word1-question-${index + 1}`,
@@ -61,6 +67,11 @@ export default function Word1({
     const userAnswer = parseInt(answers[index]);
     const correct = userAnswer === questions[index].correctAnswer;
 
+    // Mark question as attempted
+    const newHasAttempted = [...hasAttempted];
+    newHasAttempted[index] = true;
+    setHasAttempted(newHasAttempted);
+
     await onLogBehavior(
       `word1-question-${index + 1}`,
       "click",
@@ -71,6 +82,19 @@ export default function Word1({
     const updatedIsCorrect = [...isCorrect];
     updatedIsCorrect[index] = correct;
     onCorrectChange(updatedIsCorrect);
+  };
+
+  const toggleHint = async (index: number) => {
+    const newShowHints = [...showHints];
+    newShowHints[index] = !newShowHints[index];
+    setShowHints(newShowHints);
+
+    await onLogBehavior(
+      `word1-question-${index + 1}`,
+      "click",
+      `hint-button:${newShowHints[index] ? 'show' : 'hide'}`,
+      "hint-interaction"
+    );
   };
 
   const handleNext = async () => {
@@ -107,6 +131,24 @@ export default function Word1({
                   className="w-auto h-[6rem] rounded-lg ml-4"
                 />
               </div>
+              
+              {/* Only show hint button after first incorrect attempt */}
+              {hasAttempted[index] && isCorrect[index] === false && (
+                <div className="mb-4">
+                  <button
+                    onClick={() => toggleHint(index)}
+                    className="bg-[#13294B] text-white px-4 py-1 rounded-lg text-sm mr-2"
+                  >
+                    {showHints[index] ? 'Hide Hint' : 'Show Hint'}
+                  </button>
+                  {showHints[index] && (
+                    <div className="mt-2 text-[#13294B] bg-blue-100 p-3 rounded-lg">
+                      💡 {q.hint}
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="flex items-center">
                 <input
                   type="number"
@@ -126,7 +168,7 @@ export default function Word1({
               </div>
               {isCorrect[index] !== null && (
                 <div
-                  className={`mt-2 text-sls ${
+                  className={`mt-2 text-xl ${
                     isCorrect[index] ? "text-green-600" : "text-red-600"
                   }`}
                 >
@@ -136,7 +178,6 @@ export default function Word1({
             </div>
           ))}
 
-          {/* Next Button */}
           <button
             onClick={handleNext}
             className="bg-[#FF5F05] text-white px-6 py-2 rounded-lg mt-4"

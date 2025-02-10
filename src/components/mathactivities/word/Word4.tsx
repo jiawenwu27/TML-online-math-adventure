@@ -23,24 +23,28 @@ export default function Word4({
     {
       question: "Fill in the blanks to complete the subtraction problem:",
       correctAnswers: ["7", "5", "7"],
-      hint: "The result of the subtraction should be 680"
+      hint: "Focus on the place values (ones, tens, hundreds) and borrow if needed. Look carefully at the final difference (680) and use it as a guide:\n\n- The ones digit of the top number minus the ones digit of the middle number must give 0.\n- The tens digit of the top number (after any borrowing) minus the tens digit of the middle number must give 8.\n- Finally, check the hundreds place to be sure everything adds up to 680!"
     },
     {
       question: "One basket contains 242 apples, and another basket contains some bananas. If 76 bananas are taken out of the banana basket, then the number of bananas left is 155 fewer than the number of apples. How many bananas were originally in the banana basket?",
-      correctAnswer: 473,
+      correctAnswer: 163,
       image: "/img/word4-fruits.png",
-      hint: "First find how many bananas are left, then add back the 76 that were taken out"
+      hint: "Remember that after removing 76 bananas, the bananas left are 155 fewer than the apples (242). Try setting up an equation like \"Bananas left + 155 = Apples\" and add back the 76 that were taken out to find the original number of bananas."
     },
     {
       question: "Eugene's farm has 133 chickens and 46 cows. The total number of cows and sheep they have is 141 more than the number of chickens. How many sheep are on Eugene's farm?",
       correctAnswer: 228,
       image: "/img/word4-farm.png",
-      hint: "Find the total number of cows and sheep first, then subtract the number of cows"
+      hint: "You know the total of cows + sheep is 141 more than the number of chickens (133). Try forming an equation such as \"cows + sheep = chickens + 141,\" and then solve for the sheep."
     },
   ];
 
+  // Add state for showing hints and tracking attempts
+  const [showHints, setShowHints] = useState<boolean[]>(Array(3).fill(false));
+  const [hasAttempted, setHasAttempted] = useState<boolean[]>(Array(3).fill(false));
+
   // Initialize answers with empty strings and isCorrect with null if they're empty
-  const answers = propAnswers.length ? propAnswers : Array(5).fill(""); // 5 total answers needed for this component
+  const answers = propAnswers.length ? propAnswers : Array(5).fill(""); // 5 total answers needed
   const isCorrect = propIsCorrect.length ? propIsCorrect : Array(3).fill(null); // 3 questions total
 
   const handleFirstQuestionInput = (index: number, value: string) => {
@@ -54,8 +58,13 @@ export default function Word4({
       (answer, index) => answer === questions[0].correctAnswers?.[index]
     );
     
+    // Mark first question as attempted
+    const newHasAttempted = [...hasAttempted];
+    newHasAttempted[0] = true;
+    setHasAttempted(newHasAttempted);
+
     await onLogBehavior(
-      "word4-first-question",
+      "word4-question-1",
       "click",
       `check-answer-button:${answers.slice(0, 3).join(',')}`,
       correct ? "correct" : "incorrect"
@@ -77,8 +86,13 @@ export default function Word4({
     const userAnswer = parseInt(answers[index + 3]);
     const correct = userAnswer === questions[questionIndex].correctAnswer;
 
+    // Mark question as attempted
+    const newHasAttempted = [...hasAttempted];
+    newHasAttempted[questionIndex] = true;
+    setHasAttempted(newHasAttempted);
+
     await onLogBehavior(
-      `word4-question-${questionIndex}`,
+      `word4-question-${questionIndex + 1}`,
       "click",
       `check-answer-button:${userAnswer}`,
       correct ? "correct" : "incorrect"
@@ -87,6 +101,19 @@ export default function Word4({
     const updatedIsCorrect = [...isCorrect];
     updatedIsCorrect[questionIndex] = correct;
     onCorrectChange(updatedIsCorrect);
+  };
+
+  const toggleHint = async (index: number) => {
+    const newShowHints = [...showHints];
+    newShowHints[index] = !newShowHints[index];
+    setShowHints(newShowHints);
+
+    await onLogBehavior(
+      `word4-question-${index + 1}`,
+      "click",
+      `hint-button:${newShowHints[index] ? 'show' : 'hide'}`,
+      "hint-interaction"
+    );
   };
 
   const handleNext = async () => {
@@ -115,6 +142,24 @@ export default function Word4({
 
           <div className="mb-8">
             <p className="text-xl text-[#13294B] mb-4">{questions[0].question}</p>
+            
+            {/* Only show hint button after first incorrect attempt */}
+            {hasAttempted[0] && isCorrect[0] === false && (
+              <div className="mb-4">
+                <button
+                  onClick={() => toggleHint(0)}
+                  className="bg-[#13294B] text-white px-4 py-1 rounded-lg text-sm mr-2"
+                >
+                  {showHints[0] ? 'Hide Hint' : 'Show Hint'}
+                </button>
+                {showHints[0] && (
+                  <div className="mt-2 text-[#13294B] bg-blue-100 p-3 rounded-lg whitespace-pre-line">
+                    💡 {questions[0].hint}
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="flex justify-center mb-6">
               <div className="grid grid-cols-3 gap-2 text-3xl">
                 <input
@@ -185,10 +230,22 @@ export default function Word4({
                   <p className="text-xl text-[#13294B] mb-2">
                     {q.question}
                   </p>
-                  {q.hint && (
-                    <p className="text-sm text-gray-600 italic">
-                      Hint: {q.hint}
-                    </p>
+                  
+                  {/* Only show hint button after first incorrect attempt */}
+                  {hasAttempted[index + 1] && isCorrect[index + 1] === false && (
+                    <div className="mb-4">
+                      <button
+                        onClick={() => toggleHint(index + 1)}
+                        className="bg-[#13294B] text-white px-4 py-1 rounded-lg text-sm mr-2"
+                      >
+                        {showHints[index + 1] ? 'Hide Hint' : 'Show Hint'}
+                      </button>
+                      {showHints[index + 1] && (
+                        <div className="mt-2 text-[#13294B] bg-blue-100 p-3 rounded-lg">
+                          💡 {q.hint}
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
                 <img

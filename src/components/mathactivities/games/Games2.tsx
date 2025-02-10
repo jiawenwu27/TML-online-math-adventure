@@ -74,8 +74,22 @@ export default function Games2({
     { value: null, question: '25 + 35 + 48 = ?', answer: 108 }
   ];
 
-  const convertArrayToGameState = (answers: number[][]): GameState => {
-    const defaultState: GameState = {
+  // Initialize state from savedAnswers if available
+  const [gameState, setGameState] = useState<GameState>(() => {
+    if (savedAnswers && savedAnswers.board) {
+      return {
+        board: savedAnswers.board,
+        playerSymbol: savedAnswers.playerSymbol,
+        childSymbol: savedAnswers.childSymbol,
+        currentPlayer: savedAnswers.currentPlayer,
+        selectedSquare: null,
+        answer: '',
+        message: '',
+        gameComplete: savedAnswers.gameComplete,
+        userInputs: Array(3).fill(null).map(() => Array(3).fill(null))
+      };
+    }
+    return {
       board: initialBoard,
       playerSymbol: null,
       childSymbol: null,
@@ -86,40 +100,32 @@ export default function Games2({
       gameComplete: false,
       userInputs: Array(3).fill(null).map(() => Array(3).fill(null))
     };
-
-    if (!answers || answers.length === 0) return defaultState;
-
-    return {
-      ...defaultState,
-      userInputs: answers
-    };
-  };
-
-  const convertGameStateToArray = (state: GameState): number[][] => {
-    return state.userInputs.map(row => row.map(input => input ?? 0));
-  };
-
-  const [gameState, setGameState] = useState<GameState>(
-    convertArrayToGameState(Array(3).fill(Array(3).fill(0)))
-  );
+  });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Save state whenever important game state changes
   useEffect(() => {
-    if (gameState.answer && !isNaN(parseInt(gameState.answer))) {
+    if (gameState.playerSymbol !== null || gameState.gameComplete) {
       onSaveAnswers({
-        currentSquare: gameState.selectedSquare,
-        question: gameState.board[gameState.selectedSquare || 0].question,
-        correctAnswer: gameState.board[gameState.selectedSquare || 0].answer,
-        currentPlayer: gameState.currentPlayer,
-        userInput: gameState.answer,
         board: gameState.board,
         playerSymbol: gameState.playerSymbol,
         childSymbol: gameState.childSymbol,
-        gameComplete: gameState.gameComplete
+        currentPlayer: gameState.currentPlayer,
+        gameComplete: gameState.gameComplete,
+        currentSquare: null,
+        question: '',
+        correctAnswer: 0,
+        userInput: ''
       });
     }
-  }, [gameState.answer]);
+  }, [
+    gameState.board,
+    gameState.playerSymbol,
+    gameState.childSymbol,
+    gameState.currentPlayer,
+    gameState.gameComplete
+  ]);
 
   const updateGameState = (updates: Partial<GameState>) => {
    
@@ -129,7 +135,7 @@ export default function Games2({
     }));
   };
 
-  const checkWinner = (squares: Square[]): string | null => {
+  const checkWinner = (board: Square[]): string | null => {
     const lines = [
       [0, 1, 2], [3, 4, 5], [6, 7, 8], // rows
       [0, 3, 6], [1, 4, 7], [2, 5, 8], // columns
@@ -138,13 +144,19 @@ export default function Games2({
 
     for (const [a, b, c] of lines) {
       if (
-        squares[a].value &&
-        squares[a].value === squares[b].value &&
-        squares[a].value === squares[c].value
+        board[a].value &&
+        board[a].value === board[b].value &&
+        board[a].value === board[c].value
       ) {
-        return squares[a].value;
+        return board[a].value;
       }
     }
+    
+    // Check for tie: if all squares are filled and no winner
+    if (board.every(square => square.value !== null)) {
+      return 'tie';
+    }
+    
     return null;
   };
 
@@ -205,8 +217,24 @@ export default function Games2({
         };
 
         const winner = checkWinner(newBoard);
-        if (winner) {
-          const winMessage = `${gameState.currentPlayer === 'parent' ? 'Parent' : 'Child'}! High Five! You're the Tic Tac Toe Champion!`;
+        if (winner === 'tie') {
+          const winMessage = "It's a tie! Both of you played brilliantly—no winners or losers this time. 🎉🎉 Great job, team! 🎉🎉";
+          updateGameState({
+            board: newBoard,
+            message: winMessage,
+            gameComplete: true,
+            selectedSquare: null,
+            answer: '',
+            userInputs: newUserInputs
+          });
+
+          trackBehavior(
+            "game-complete",
+            "result:tie",
+            "game-finished-tie"
+          );
+        } else if (winner) {
+          const winMessage = `${gameState.currentPlayer === 'parent' ? 'Parent' : 'Child'} wins! 🎉`;
           updateGameState({
             board: newBoard,
             message: winMessage,
@@ -219,7 +247,7 @@ export default function Games2({
           trackBehavior(
             "game-complete",
             `winner:${gameState.currentPlayer}`,
-            winMessage
+            "game-finished-win"
           );
         } else {
           updateGameState({
@@ -232,8 +260,7 @@ export default function Games2({
         }
       } else {
         updateGameState({
-          // userInputs: newUserInputs,
-          message: 'Wrong answer! Turn goes to the other player.',
+          message: 'Incorrect! Turn passes to the other player.',
           currentPlayer: gameState.currentPlayer === 'parent' ? 'child' : 'parent',
           selectedSquare: null,
           answer: ''
@@ -277,6 +304,11 @@ export default function Games2({
                   playerSymbol: 'cross',
                   childSymbol: 'circle'
                 });
+                trackBehavior(
+                  "click",
+                  "select-symbol:circle",
+                  "child-selected:circle"
+                );
               }}
               className="w-24 h-24 flex items-center justify-center"
             >
@@ -288,6 +320,11 @@ export default function Games2({
                   playerSymbol: 'circle',
                   childSymbol: 'cross'
                 });
+                trackBehavior(
+                  "click",
+                  "select-symbol:cross",
+                  "child-selected:cross"
+                );
               }}
               className="w-24 h-24 flex items-center justify-center"
             >
@@ -391,7 +428,13 @@ export default function Games2({
           </div>
         )}
         {gameState.message && (
-          <div className="text-xl font-bold mb-6">{gameState.message}</div>
+          <div className={`text-xl font-bold mb-6 ${
+            gameState.message.includes('winners') || gameState.message.includes('wins')
+              ? 'text-green-600'
+              : 'text-red-600'
+          }`}>
+            {gameState.message}
+          </div>
         )}
         {gameState.gameComplete && (
           <button

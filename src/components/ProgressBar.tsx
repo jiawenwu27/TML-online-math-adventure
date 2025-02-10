@@ -5,6 +5,7 @@ interface ProgressBarProps {
     onStepClick: (index: number) => void;
     selections: (string | null)[];
     disabledSteps: boolean[];
+    completedQuestions: boolean[];
   }
   
   export default function ProgressBar({
@@ -13,7 +14,8 @@ interface ProgressBarProps {
     completedSteps,
     onStepClick,
     selections,
-    disabledSteps
+    disabledSteps,
+    completedQuestions
   }: ProgressBarProps) {
     return (
       <div className="w-full max-w-3xl mx-auto mb-8">
@@ -23,20 +25,34 @@ interface ProgressBarProps {
               <button
                 onClick={() => onStepClick(index)}
                 className={`
-                  w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold
-                  ${disabledSteps[index]
-                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                    : index < currentStep - 1
-                    ? 'bg-[#13294B] text-white cursor-pointer'
-                    : index === currentStep - 1
+                  w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold relative
+                  ${index === currentStep - 1
                     ? 'bg-[#FF5F05] text-white cursor-pointer'
-                    : 'bg-gray-200 text-gray-500 cursor-not-allowed'}
+                    : completedQuestions[index]
+                    ? 'bg-green-500 text-white cursor-pointer hover:bg-green-600 transition-colors'
+                    : 'bg-[#13294B] text-white cursor-pointer hover:bg-[#1f3f6f] transition-colors'}
                 `}
-                disabled={disabledSteps[index] || index > currentStep - 1}
               >
-                {index + 1}
+                {completedQuestions[index] ? (
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    className="h-6 w-6" 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    stroke="currentColor"
+                  >
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth={2} 
+                      d="M5 13l4 4L19 7" 
+                    />
+                  </svg>
+                ) : (
+                  index + 1
+                )}
               </button>
-              {selections[index] && !disabledSteps[index] && (
+              {selections[index] && (
                 <span className="text-sm mt-1">
                   {selections[index]?.charAt(0).toUpperCase() + selections[index]?.slice(1)}
                 </span>
