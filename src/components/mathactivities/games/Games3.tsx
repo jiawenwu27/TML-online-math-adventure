@@ -53,52 +53,52 @@ export default function Games3({
 
   const grid: Cell[] = [
       // Row 1
-      { id: 0, type: "question", content: "48 + 36 + 22 + 19", possibleanswerid: [1, 5, 6], answer: [6], next: [2, 10, 12] },
-      { id: 1, type: "answer", content: "127", direction: "right"},
-      { id: 2, type: "question", content: "32 + 45 + 22 + 38", possibleanswerid: [3, 7], answer: [3], next: [4, 12] },
-      { id: 3, type: "answer", content: "137", direction: "right" },
-      { id: 4, type: "question", content: "37 + 62 + 45 + 24", possibleanswerid: [3, 8, 9], answer: [9], next: [2, 12, 14] },
+      { id: 0, type: "question", content: "34 + 28 + 15", possibleanswerid: [1, 5, 6], answer: [6], next: [2, 10, 12] },
+      { id: 1, type: "answer", content: "78", direction: "right"},
+      { id: 2, type: "question", content: "32 + 45 + 22", possibleanswerid: [3, 7], answer: [3], next: [4, 12] },
+      { id: 3, type: "answer", content: "99", direction: "right" },
+      { id: 4, type: "question", content: "37 + 62 + 45", possibleanswerid: [3, 8, 9], answer: [9], next: [2, 12, 14] },
   
       // Row 2
-      { id: 5, type: "answer", content: "118", direction: "bottom" },
-      { id: 6, type: "answer", content: "125" , direction: "bottom-right"},
+      { id: 5, type: "answer", content: "77", direction: "bottom" },
+      { id: 6, type: "answer", content: "67" , direction: "bottom-right"},
       { id: 7, type: "answer", content: "30", direction: "bottom" },
       { id: 8, type: "answer", content: "25", direction: "bottom-left" },
-      { id: 9, type: "answer", content: "168", direction: "bottom" },
+      { id: 9, type: "answer", content: "144", direction: "bottom" },
   
       // Row 3
-      { id: 10, type: "question", content: "43 + 57 + 12 + 28", possibleanswerid: [15], answer: [], next: [20] },
-      { id: 11, type: "answer", content: "32", direction: "left" },
-      { id: 12, type: "question", content: "175 - 34 - 62 - 59", possibleanswerid: [11 , 13, 16, 17, 18], answer: [16], next: [10, 14, 20, 22, 24] },
-      { id: 13, type: "answer", content: "15", direction: "right" },
-      { id: 14, type: "question", content: "83 + 27 + 12 + 58", possibleanswerid: [19], answer: [19], next: [24] },
+      { id: 10, type: "question", content: "43 + 57 + 12", possibleanswerid: [15], answer: [], next: [20] },
+      { id: 11, type: "answer", content: "108", direction: "left" },
+      { id: 12, type: "question", content: "180 - 25 - 37", possibleanswerid: [11, 13, 16, 17, 18], answer: [16], next: [10, 14, 20, 22, 24] },
+      { id: 13, type: "answer", content: "128", direction: "right" },
+      { id: 14, type: "question", content: "83 + 27 + 12", possibleanswerid: [19], answer: [19], next: [24] },
   
       // Row 4
-      { id: 15, type: "answer", content: "143", direction: "bottom" },
-      { id: 16, type: "answer", content: "20", direction: "bottom-left" },
-      { id: 17, type: "answer", content: "23", direction: "bottom" },
-      { id: 18, type: "answer", content: "19", direction: "bottom-right" },
-      { id: 19, type: "answer", content: "180", direction: "bottom" },
+      { id: 15, type: "answer", content: "122", direction: "bottom" },
+      { id: 16, type: "answer", content: "118", direction: "bottom-left" },
+      { id: 17, type: "answer", content: "116", direction: "bottom" },
+      { id: 18, type: "answer", content: "120", direction: "bottom-right" },
+      { id: 19, type: "answer", content: "122", direction: "bottom" },
   
       // Row 5
-      { id: 20, type: "question", content: "82 + 15 + 23 + 37", possibleanswerid: [21, 25], answer: [21], next: [22, 30] },
-      { id: 21, type: "answer", content: "157", direction: "right" },
-      { id: 22, type: "question", content: "125 - 48 - 36 - 24", possibleanswerid: [26, 27, 23], answer: [27], next: [30, 32, 24] },
-      { id: 23, type: "answer", content: "21", direction: "right" },
-      { id: 24, type: "question", content: "53 + 27 + 86 + 13", possibleanswerid: [29], answer: [29], next: [34] },
+      { id: 20, type: "question", content: "43 + 57 + 22", possibleanswerid: [21, 25], answer: [21], next: [22, 30] },
+      { id: 21, type: "answer", content: "122", direction: "right" },
+      { id: 22, type: "question", content: "125 - 48 - 36", possibleanswerid: [26, 27, 23], answer: [27], next: [30, 32, 24] },
+      { id: 23, type: "answer", content: "31", direction: "right" },
+      { id: 24, type: "question", content: "53 + 27 + 86", possibleanswerid: [29], answer: [29], next: [34] },
   
       // Row 6
-      { id: 25, type: "answer", content: "137", direction: "bottom" },
-      { id: 26, type: "answer", content: "14", direction: "bottom-left" },
-      { id: 27, type: "answer", content: "17", direction: "bottom" },
+      { id: 25, type: "answer", content: "120", direction: "bottom" },
+      { id: 26, type: "answer", content: "44", direction: "bottom-left" },
+      { id: 27, type: "answer", content: "41", direction: "bottom" },
       { id: 28, type: "answer", content: "152", direction: "top-right" },
-      { id: 29, type: "answer", content: "179", direction: "bottom" },
+      { id: 29, type: "answer", content: "166", direction: "bottom" },
   
       // Row 7
-      { id: 30, type: "question", content: "173 - 67 - 22 - 28", possibleanswerid: [25, 31], answer: [], next: [20, 32] },
+      { id: 30, type: "question", content: "173 - 67 - 22", possibleanswerid: [25, 31], answer: [], next: [20, 32] },
       { id: 31, type: "answer", content: "56", direction: "right" },
-      { id: 32, type: "question", content: "67 + 54 + 29 + 11", possibleanswerid: [28, 33], answer: [33], next: [24, 34] },
-      { id: 33, type: "answer", content: "161", direction: "right" },
+      { id: 32, type: "question", content: "67 + 54 + 29", possibleanswerid: [28, 33], answer: [33], next: [24, 34] },
+      { id: 33, type: "answer", content: "150", direction: "right" },
       { id: 34, type: "castle", content: "🏰" }, // Castle at the end
     ];
   

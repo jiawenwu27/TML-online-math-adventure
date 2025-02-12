@@ -29,20 +29,20 @@ export default function Games1({
 }: ActivityComponentProps) {
   const [selectedNumbers, setSelectedNumbers] = useState<number[]>(savedAnswers);
   const [mathProblems] = useState([
-    { problem: '24 + 27', answer: 51 },
-    { problem: '56 + 38', answer: 94 },
-    { problem: '67 - 29', answer: 38 }
+    { problem: '23 + 25', answer: 48 },
+    { problem: '52 + 17', answer: 69 },
+    { problem: '48 - 36', answer: 12 }
   ]);
 
   const icons = [
-    { id: 'clock', value: 51, icon: '⏰' },
+    { id: 'clock', value: 48, icon: '⏰' },
     { id: 'alien', value: 53, icon: '👽' },
     { id: 'balloon', value: 36, icon: '🎈' },
     { id: 'basketball', value: 47, icon: '🏀' },
-    { id: 'books', value: 94, icon: '📚' },
+    { id: 'books', value: 69, icon: '📚' },
     { id: 'banana', value: 46, icon: '🍌' },
     { id: 'shuttlecock', value: 84, icon: '🏸' },
-    { id: 'rabbit', value: 38, icon: '🐰' },
+    { id: 'rabbit', value: 12, icon: '🐰' },
     { id: 'butterfly', value: 41, icon: '🦋' }
   ];
 

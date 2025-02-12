@@ -18,9 +18,9 @@ export default function Formal3({
   onLogBehavior
 }: ActivityComponentProps) {
   const questions = [
-    { question: "34 + 28 + 15 + 49 = ?", correctAnswer: 126 },
-    { question: "43 + 57 + 22 + 18 = ?", correctAnswer: 140 },
-    { question: "180 - 25 - 37 - 44 = ?", correctAnswer: 74 },
+    { question: "34 + 28 + 15 = ?", correctAnswer: 77 },
+    { question: "43 + 57 + 22 = ?", correctAnswer: 122 },
+    { question: "180 - 25 - 37 = ?", correctAnswer: 118 },
   ];
 
   // Initialize answers and isCorrect if they're empty

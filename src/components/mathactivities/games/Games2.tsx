@@ -63,15 +63,15 @@ export default function Games2({
   onTrackBehavior
 }: ActivityComponentProps) {
   const initialBoard: Square[] = [
-    { value: null, question: '58 - 29 = ?', answer: 29 },
-    { value: null, question: '52 + 14 + 26 = ?', answer: 92 },
-    { value: null, question: '75 - 22 - 45 = ?', answer: 8 },
-    { value: null, question: '17 + 23 + 46 = ?', answer: 86 },
-    { value: null, question: '67 - 34 - 26 = ?', answer: 7 },
-    { value: null, question: '96 - 38 = ?', answer: 58 },
-    { value: null, question: '86 - 23 - 35 = ?', answer: 28 },
-    { value: null, question: '67 - 18 = ?', answer: 49 },
-    { value: null, question: '25 + 35 + 48 = ?', answer: 108 }
+    { value: null, question: '67 - 29 = ?', answer: 38 },
+    { value: null, question: '24 + 27 = ?', answer: 51 },
+    { value: null, question: '56 - 38 = ?', answer: 18 },
+    { value: null, question: '42 - 27 = ?', answer: 15 },
+    { value: null, question: '47 + 28 = ?', answer: 75 },
+    { value: null, question: '58 + 36 = ?', answer: 94 },
+    { value: null, question: '61 - 38 = ?', answer: 23 },
+    { value: null, question: '69 + 25 = ?', answer: 94 },
+    { value: null, question: '53 - 29 = ?', answer: 24 }
   ];
 
   // Initialize state from savedAnswers if available

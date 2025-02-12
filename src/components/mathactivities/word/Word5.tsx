@@ -27,15 +27,15 @@ export default function Word5({
       },
       {
         title: "First Riddle: Cave of Numbers",
-        text: "The dragon's riddle read: \"I hid 245 numbers in the first cave, 376 in the second, and 189 in the third. How many numbers are there in total?\" \n\"[___]\" Ruby shouted, and they collected the stolen numbers."
+        text: "The dragon's riddle read: \"I hid 147 numbers in the first cave, 176 in the second cave. But then, a sneaky goblin took away 245 numbers! How many numbers remain?\" \n\"[___]\" Ruby shouted, and they collected the stolen numbers."
       },
       {
         title: "Second Riddle: The Towering Gate",
-        text: "Pressing onward, they reached a towering castle gate with another puzzle inscribed on it: \"Inside this gate are 612 numbers, but 158 vanished into thin air, 234 dropped into the eternal fire. How many remain behind the gate?\" \nMax confidently announced \"[___]\" to unlock the gate, and they collected the stolen numbers."
+        text: "Pressing onward, they reached a towering castle gate with another puzzle inscribed on it: \"Inside this gate are 260 numbers, but 87 vanished into thin air, 78 dropped into the eternal fire. How many remain behind the gate?\" \nMax confidently announced \"[___]\" to unlock the gate, and they collected the stolen numbers."
       },
       {
         title: "Third Riddle: The Sparkling Fountain",
-        text: "Deeper in the castle, the group discovered a sparkling fountain. A nearby note read: \"I placed 432 numbers in this fountain for the frogs, but 123 hopped away, and 67 more were borrowed by a passing turtle. How many are left in the fountain?\"\n\"[___] numbers!\" Mia figured it out, and they claimed more stolen numbers."
+        text: "Deeper in the castle, the group discovered a sparkling fountain. A nearby note read: \"I placed 225 numbers in this fountain. Then, 69 were taken by a mischievous squirrel. Luckily, a kind fairy added 78 more numbers to the fountain. How many are left in the fountain?\"\n\"[___] numbers!\" Mia figured it out, and they claimed more stolen numbers."
       },
       {
         title: "",
@@ -46,11 +46,11 @@ export default function Word5({
         text: "A dazzling rainbow of digits burst into the sky. The Number King cheered, “Thanks to your clever math, our kingdom is safe and whole again!” With that, the mischievous dragon Minus Max flew off, defeated by the power of teamwork and problem-solving."
       }
     ],
-    correctAnswers: ["810", "220", "242", "1272"],
+    correctAnswers: ["78", "95", "234", "407"],
     hints: [
-      "Add the numbers in steps: try 245 + 376 first, then add 189.",
-      "Start with 612. Subtract 158 to find what's left, then subtract another 234.",
-      "Begin with 432. Take away 123, then subtract 67 more.",
+      "Add the numbers in both caves, then subtract the numbers taken by the goblin.",
+      "Start with 260. Take away 87 first, then subtract 78 more.",
+      "Begin with 225. Take away 69 first, then add back 78",
       "Add your answers: the result of the caves (+) the result of the gate (+) the result of the fountain."
     ]
   };

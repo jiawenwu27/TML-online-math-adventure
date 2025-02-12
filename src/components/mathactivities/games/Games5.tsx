@@ -48,31 +48,31 @@ export default function Games5({
   const { width, height } = useWindowSize();
 
   const mathProblems = [
-    { id: 1, problem: '763 - 244 - 267', answer: 252 }, // N
-    { id: 2, problem: '139 + 283 + 97', answer: 519 }, // U
-    { id: 3, problem: '194 - 16 - 52 - 29', answer: 97 }, // L
-    { id: 4, problem: '834 + 107 - 203', answer: 738 }, // O
-    { id: 5, problem: '458 - 67 + 152', answer: 543 }, // R
-    { id: 6, problem: '89 + 64 - 138', answer: 15 }, // E
-    { id: 7, problem: '295 + 427 + 156', answer: 878 }, // Q
-    { id: 8, problem: '678 - 40 - 81', answer: 557 }, // A
-    { id: 9, problem: '953 - 204 - 165 - 47', answer: 537 }, // I
-    { id: 10, problem: '823 - 125 - 41 - 275', answer: 382 }, // S
-    { id: 11, problem: '78 - 27 - 14', answer: 37 }, // C
+    { id: 1, problem: '147 + 176 - 245', answer: 78 }, // N
+    { id: 2, problem: '260 - 87 - 78 ', answer: 95 }, // U
+    { id: 3, problem: '225 - 69 + 78', answer: 234 }, // L
+    { id: 4, problem: '521 - 284', answer: 237 }, // O
+    { id: 5, problem: '395 + 628', answer: 1023 }, // R
+    { id: 6, problem: '468 + 257 ', answer: 725 }, // E
+    { id: 7, problem: '703 - 458', answer: 245 }, // Q
+    { id: 8, problem: '234 + 78 + 95', answer: 407 }, // A
+    { id: 9, problem: '138 - 23', answer: 115 }, // I
+    { id: 10, problem: '112 + 136', answer: 248 }, // S
+    { id: 11, problem: '345 - 127', answer: 218 }, // C
   ];
 
   const letterCodes = {
-    252: 'N',
-    519: 'U',
-    97: 'L',
-    738: 'O',
-    543: 'R',
-    15: 'E',
-    878: 'Q',
-    557: 'A',
-    537: 'I',
-    382: 'S',
-    37: 'C',
+    78: 'N',
+    95: 'U',
+    234: 'L',
+    237: 'O',
+    1023: 'R',
+    725: 'E',
+    245: 'Q',
+    407: 'A',
+    115: 'I',
+    248: 'S',
+    218: 'C',
     // Distracting codes
     123: 'B',
     456: 'Y',
