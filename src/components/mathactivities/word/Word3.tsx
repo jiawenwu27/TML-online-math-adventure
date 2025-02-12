@@ -23,35 +23,35 @@ export default function Word3({
     {
       question: (
         <>
-          Emma is hosting a big picnic party in the park, and she's buying snacks for her friends: She picks up 27 cookies for dessert. Next, she grabs 26 sandwiches for lunch. Then, she gets 41 juice boxes to keep everyone refreshed. Finally, she adds 39 apples for a healthy treat.{" "}
+          Emma is hosting a big picnic party in the park, and she's buying snacks for her friends: She picks up 34 cookies for dessert. Next, she grabs 28 sandwiches for lunch. Then, she gets 15 juice boxes to keep everyone refreshed. {" "}
           <b>How many snacks did Emma bring to her picnic in total?</b> Can you count them all before the picnic starts?
         </>
       ),
-      correctAnswer: 133,
+      correctAnswer: 77,
       image: "/img/word3-snacks.png",
-      hint: "Think of each item group (cookies, sandwiches, juice boxes, apples). Add all four numbers together to find the total snacks. If you're stuck, try adding two numbers first, then add the next two, and finally add those sums together!"
+      hint: "Think of each item group (cookies, sandwiches, juice boxes). Add all three numbers together to find the total snacks. If you're stuck, try adding two numbers first, then add the third one!"
     },
     {
       question: (
         <>
-          Sarah finds $145 in her treasure chest and decides to use it for a fun shopping spree! She spends $23 on a pirate's map to find even more treasure. Then, she uses $57 to buy a shiny new telescope. Finally, she spends $46 on a magical compass.{" "}
+          Sarah finds $180 in her treasure chest and decides to use it for a fun shopping spree! She spends $25 on a pirate's map to find even more treasure. Then, she uses $37 to buy a shiny new telescope. {" "}
           <b>How much treasure money does Sarah have left after her exciting adventure?</b> Can you figure it out before she sails away?
         </>
       ),
-      correctAnswer: 19,
+      correctAnswer: 118,
       image: "/img/word3-treasure.png",
-      hint: "First, add up how much Sarah spent: $23, $57, and $46. Next, subtract that total from the $145 she started with. That difference tells you how much treasure money she has left!"
+      hint: "First, add up how much Sarah spent: $25 and $37. Next, subtract that total from the $180 she started with. That difference tells you how much treasure money she has left!"
     },
     {
       question: (
         <>
-          A magical library in the forest is collecting books to fill its shelves! Four generous animals bring their favorite stories to donate: Alex the Alligator brings 55 books about rivers and swamps. Bailey the Bunny hops in with 26 books full of carrot recipes. Casey the Cat arrives with 33 books about adventures with mice. Dylan the Deer gallops over with 62 books about the great outdoors.{" "}
+          A magical library in the forest is collecting books to fill its shelves! Four generous animals bring their favorite stories to donate: Alex the Alligator brings 43 books about rivers and swamps. Bailey the Bunny hops in with 57 books full of carrot recipes. Casey the Cat arrives with 22 books about adventures with mice. {" "}
           <b>How many books did the library receive altogether?</b> Can you help the librarian count them?
         </>
       ),
-      correctAnswer: 176,
+      correctAnswer: 122,
       image: "/img/word3-animalsbooks.png",
-      hint: "To find the total number of books, add the amounts brought by each animal: 55, 26, 33, and 62. Combine them one step at a time, or all at once if you're comfortable with bigger sums!"
+      hint: "To find the total number of books, add the amounts brought by each animal: 43, 57, and 22. Combine them one step at a time, or all at once if you're comfortable with bigger sums!"
     },
   ];
 

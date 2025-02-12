@@ -26,16 +26,16 @@ export default function Word4({
       hint: "Focus on the place values (ones, tens, hundreds) and borrow if needed. Look carefully at the final difference (680) and use it as a guide:\n\n- The ones digit of the top number minus the ones digit of the middle number must give 0.\n- The tens digit of the top number (after any borrowing) minus the tens digit of the middle number must give 8.\n- Finally, check the hundreds place to be sure everything adds up to 680!"
     },
     {
-      question: "One basket contains 242 apples, and another basket contains some bananas. If 76 bananas are taken out of the banana basket, then the number of bananas left is 155 fewer than the number of apples. How many bananas were originally in the banana basket?",
-      correctAnswer: 163,
+      question: "A fruit market has 456 apples in one section and 295 oranges in another section. How many more apples than oranges does the market have now?",
+      correctAnswer: 161,
       image: "/img/word4-fruits.png",
-      hint: "Remember that after removing 76 bananas, the bananas left are 155 fewer than the apples (242). Try setting up an equation like \"Bananas left + 155 = Apples\" and add back the 76 that were taken out to find the original number of bananas."
+      hint: "Subtract the number of oranges from the number of apples to find the difference."
     },
     {
-      question: "Eugene's farm has 133 chickens and 46 cows. The total number of cows and sheep they have is 141 more than the number of chickens. How many sheep are on Eugene's farm?",
-      correctAnswer: 228,
+      question: "Eugene's farm has 69 ducks in one pond and 128 geese in another. How many water birds are on Eugene's farm in total?",
+      correctAnswer: 197,
       image: "/img/word4-farm.png",
-      hint: "You know the total of cows + sheep is 141 more than the number of chickens (133). Try forming an equation such as \"cows + sheep = chickens + 141,\" and then solve for the sheep."
+      hint: "Add the number of ducks and geese together to find the total number of water birds."
     },
   ];
 

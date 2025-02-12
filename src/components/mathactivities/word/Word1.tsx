@@ -21,22 +21,22 @@ export default function Word1({
 }: ActivityComponentProps) {
   const questions = [
     {
-      question: "Sally baked 24 cookies for the party tonight. Katy brought 27 cookies. How many cookies do they have altogether for the party?",
-      correctAnswer: 51,
+      question: "Sally baked 23 cookies for the party tonight. Katy brought 25 cookies. How many cookies do they have altogether for the party?",
+      correctAnswer: 48,
       image: "/img/word1-cookies.png",
-      hint: "\"altogether\" means adding both numbers. Think about how many cookies Sally has (24) and how many Katy has (27), then combine them!"
+      hint: "\"altogether\" means adding both numbers. Think about how many cookies Sally has (23) and how many Katy has (25), then combine them!"
     },
     {
-      question: "Anna read 56 books this month. John read 38 books. How many books did they read altogether?",
-      correctAnswer: 94,
+      question: "Anna read 52 books this month. John read 17 books. How many books did they read altogether?",
+      correctAnswer: 69,
       image: "/img/word1-books.png",
-      hint: "\"altogether\" means adding both numbers. Think about how many book Anna read (56) and how many John read (38), then combine them!"
+      hint: "\"altogether\" means adding both numbers. Think about how many book Anna read (52) and how many John read (17), then combine them!"
     },
     {
-      question: "The pet store had 67 cats. 29 cats were adopted. How many cats are left at the pet store?",
-      correctAnswer: 38,
+      question: "The pet store had 48 cats. 36 cats were adopted. How many cats are left at the pet store?",
+      correctAnswer: 12,
       image: "/img/word1-cats.png",
-      hint: "Since 29 cats left the pet store, you'll need to subtract 29 from the total of 67 to find out how many cats are still there. Remember: Total – Adopted = Left in the store."
+      hint: "Since 36 cats left the pet store, you'll need to subtract 36 from the total of 48 to find out how many cats are still there. Remember: Total – Adopted = Left in the store."
     },
   ];
 

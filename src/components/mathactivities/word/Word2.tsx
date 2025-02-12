@@ -21,22 +21,22 @@ export default function Word2({
 }: ActivityComponentProps) {
   const questions = [
     {
-      question: "Judy was watching a new TV series that had 58 episodes. She already watched 29 episodes. How many more did she need to watch?",
-      correctAnswer: 29,
+      question: "Judy was watching a new TV series that had 67 episodes. She already watched 29 episodes. How many more did she need to watch?",
+      correctAnswer: 38,
       image: "/img/word2-TV.png",
-      hint: "To find how many are left, subtract 29 from 58. The difference tells you how many episodes Judy still needs to watch."
+      hint: "To find how many are left, subtract 29 from 67. The difference tells you how many episodes Judy still needs to watch."
     },
     {
-      question: "Lucy planted 25 flowers in one row and 35 flowers in another row. Later, she planted 48 more flowers in a third row. How many flowers did Lucy plant in total?",
-      correctAnswer: 108,
+      question: "Lucy planted 24 flowers in one row and 27 flowers in another row. How many flowers did Lucy plant in total?",
+      correctAnswer: 51,
       image: "/img/word2-flowers.png",
-      hint: "First row + Second row + Third row = Total number of flowers."
+      hint: "First row + Second row = Total number of flowers."
     },
     {
-      question: "The zoo had 67 tickets available for a school trip. A class of 34 students bought tickets, and another group of 26 teachers bought tickets. How many tickets are left?",
-      correctAnswer: 7,
+      question: "The zoo had 56 tickets available for a school trip. A class of 38 students bought tickets. How many tickets are left?",
+      correctAnswer: 18,
       image: "/img/word2-zoo.png",
-      hint: "Add the number of tickets used by the students (34) and the teachers (26). Then, subtract that total from the original 67 tickets to find out how many are left."
+      hint: "Subtract the number of tickets used by the students (38) from the original 56 tickets to find out how many are left."
     },
   ];
 
