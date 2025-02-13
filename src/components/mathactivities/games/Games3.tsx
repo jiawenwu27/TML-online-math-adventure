@@ -60,8 +60,8 @@ export default function Games3({
       { id: 4, type: "question", content: "37 + 62 + 45", possibleanswerid: [3, 8, 9], answer: [9], next: [2, 12, 14] },
   
       // Row 2
-      { id: 5, type: "answer", content: "77", direction: "bottom" },
-      { id: 6, type: "answer", content: "67" , direction: "bottom-right"},
+      { id: 5, type: "answer", content: "67", direction: "bottom" },
+      { id: 6, type: "answer", content: "77" , direction: "bottom-right"},
       { id: 7, type: "answer", content: "30", direction: "bottom" },
       { id: 8, type: "answer", content: "25", direction: "bottom-left" },
       { id: 9, type: "answer", content: "144", direction: "bottom" },
