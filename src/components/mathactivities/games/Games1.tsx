@@ -83,7 +83,7 @@ export default function Games1({
   };
 
   const checkCode = async (numbers: number[], isInitial: boolean = false) => {
-    const correctCode = [51, 94, 38];
+    const correctCode = [48, 69, 12];
     
     if (numbers.length !== 3) {
       setMessage('Please press 3 buttons!');

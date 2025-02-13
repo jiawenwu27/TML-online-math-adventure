@@ -13,10 +13,14 @@ interface ActivityComponentProps {
 export default function Formal5({ 
   onBack, 
   onComplete,
-  onLogBehavior 
+  onLogBehavior,
+  answers = [],
+  isCorrect: savedIsCorrect = [],
+  onAnswersChange,
+  onCorrectChange
 }: ActivityComponentProps) {
-  const [answer, setAnswer] = useState("");
-  const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
+  const [answer, setAnswer] = useState(answers[4] || "");
+  const [isCorrect, setIsCorrect] = useState<boolean | null>(savedIsCorrect[4] ?? null);
 
   // Values for each animal (can be determined by solving the system of equations)
   // Fox + 245 = 147 + 176 → Fox = 78
@@ -29,6 +33,11 @@ export default function Formal5({
 
   const handleInputChange = (value: string) => {
     setAnswer(value);
+    if (onAnswersChange) {
+      const newAnswers = [...answers];
+      newAnswers[4] = value;
+      onAnswersChange(newAnswers);
+    }
   };
 
   const checkAnswer = async () => {
@@ -43,6 +52,11 @@ export default function Formal5({
     );
 
     setIsCorrect(correct);
+    if (onCorrectChange) {
+      const newCorrect = [...savedIsCorrect];
+      newCorrect[4] = correct;
+      onCorrectChange(newCorrect);
+    }
   };
 
   const handleNext = async () => {
