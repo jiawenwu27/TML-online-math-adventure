@@ -55,7 +55,7 @@ export const activitySets: ActivitySet[] = [
     },
     word: {
       content: "Emma picks up 34 cookies for dessert. Next, she grabs 28 sandwiches for lunch. Then, she gets 15 juice boxes. How many snacks did Emma bring to her picnic in total?",
-      image: "/img/word3-picnic.png",
+      image: "/img/word3-snacks.png",
       answer: 51
     },
     game: {
