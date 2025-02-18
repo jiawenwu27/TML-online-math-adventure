@@ -18,11 +18,11 @@ export const activitySets: ActivitySet[] = [
   // first set
   {
     formal: {
-      content: "24 + 27 = ___ \n 56 + 38 = ___ \n 67 - 29 = ___",
+      content: "23 + 25 = ___ \n 52 + 17 = ___ \n 48 - 36 = ___",
       answer: 65
     },
     word: {
-      content: "Sally baked 24 cookies for the party tonight. Katy brought 27 cookies. How many cookies do they have altogether for the party?",
+      content: "Sally baked 23 cookies for the party tonight. Katy brought 25 cookies. How many cookies do they have altogether for the party?",
       image: "/img/word1-cookies.png",
       answer: 51
     },
@@ -34,11 +34,11 @@ export const activitySets: ActivitySet[] = [
   // second set
   {
     formal: {
-      content: "58 - 29 = ___ \n 25 + 35 + 48 = ___ \n 67 - 34 - 26 = ___",
+      content: "67 - 29 = ___ \n 24 + 27 = ___ \n 56 - 38 = ___",
       answer: 65
     },
     word: {
-      content: "The zoo had 67 tickets available for a school trip. A class of 34 students bought tickets, and another group of 26 teachers bought tickets. How many tickets are left?",
+      content: "The zoo had 56 tickets available for a school trip. A class of 38 students bought tickets. How many tickets are left?",
       image: "/img/word2-zoo.png",
       answer: 51
     },
@@ -50,11 +50,11 @@ export const activitySets: ActivitySet[] = [
   // third set
   {
     formal: {
-      content: "34 + 28 + 15 + 49 = ___ \n 43 + 57 + 22 + 18 = ___ \n 180 - 25 - 37 - 44 = ___",
+      content: "34 + 28 + 15 = ___ \n 43 + 57 + 22 = ___ \n 180 - 25 - 37 = ___",
       answer: 65
     },
     word: {
-      content: "Emma picks up 27 cookies for dessert. Next, she grabs 26 sandwiches for lunch. Then, she gets 41 juice boxes. Finally, she adds 39 apples for a healthy treat. How many snacks did Emma bring to her picnic in total?",
+      content: "Emma picks up 34 cookies for dessert. Next, she grabs 28 sandwiches for lunch. Then, she gets 15 juice boxes. How many snacks did Emma bring to her picnic in total?",
       image: "/img/word3-picnic.png",
       answer: 51
     },
@@ -66,11 +66,11 @@ export const activitySets: ActivitySet[] = [
   // fourth set
   {
     formal: {
-      content: "368 - 127 = ___ \n 2253 - 164 + 65 = ___ \n 122 - 45 + 152 = ___",
+      content: "137 + 58 = ___ \n 456 - 295 = ___ \n 128 + 69 = ___",
       answer: 65
     },
     word: {
-      content: "Eugene's farm has 133 chickens and 46 cows. The total number of cows and sheep they have is 141 more than the number of chickens. How many sheep are on Eugene's farm?",
+      content: "Eugene's farm has 69 ducks in one pond and 128 geese in another. How many water birds are on Eugene's farm in total?",
       image: "/img/word4-animals.png",
       answer: 51
     },
@@ -86,7 +86,7 @@ export const activitySets: ActivitySet[] = [
       answer: 65
     },
     word: {
-      content: "Number Kindom adventure: The king has 147 gold coins and 176 silver coins. He wants to give 245 coins to his daughter. How many coins does he need to buy from the market to have enough?",
+      content: "Number Kindom adventure: I hid 147 numbers in the first cave, 176 in the second cave, and 245 in the third cave...",
       image: "/img/word5-dragon.png",
       answer: 51
     },
