@@ -117,29 +117,18 @@ export default function Home() {
       />
 
       {/* Heading */}
-      <header className="text-center mb-6">
+      <header className="text-center mb-2">
         <h1
           className="text-6xl font-extrabold text-[#5178C9]"
           style={{ fontFamily: "'Comic Sans MS', cursive, sans-serif" }}
         >
-          Let’s Do Math Together!
+          Let's Do Math Together!
         </h1>
-        <h2 className="text-2xl font-bold text-[#3358A3] mt-6">
-          Welcome to our Fun Family Math Adventure!
-        </h2>
       </header>
 
-      {/* Introductory Section */}
-      <div className="text-center mb-6">
-        <p className="text-lg font-medium text-gray-700">
-          Hi there! Today, you'll be solving fun math problems together with
-          your mom or dad. We're excited to see how well you work as a team!
-        </p>
-      </div>
-
       {/* Magic Code Prompt */}
-      <div className="text-center mb-2">
-      <h3 className="text-2xl font-semibold text-[#003DA5] mb-6">
+      <div className="text-center">
+      <h3 className="text-2xl font-semibold text-[#003DA5]">
         Before we begin, we need the {" "}
         <span className="animate-highlight">
            magic code 
@@ -167,7 +156,7 @@ export default function Home() {
 
         <label
           htmlFor="magic-code"
-          className="text-lg font-semibold text-gray-700 mb-2"
+          className="text-lg font-semibold text-gray-700 mb-2 mt-2"
         >
           Enter your magic code here:
         </label>
@@ -180,10 +169,10 @@ export default function Home() {
         />
         <button 
           onClick={handleRedirect}
-          className="mt-4 bg-[#003DA5] text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:bg-[#3358A3]">
+          className="mt-4 bg-[#003DA5] text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:bg-[#3358A3] mt-8">
           Start My Math Adventure
         </button>
-        <p className="text-sm text-gray-500 mt-4">
+        <p className="text-sm text-gray-500 mt-6">
           No code yet? Check Zoom chat!
         </p>
       </div>

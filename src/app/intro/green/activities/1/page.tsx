@@ -515,7 +515,7 @@ export default function ActivitySelection() {
           <h2 className="text-2xl text-[#13294B] mb-6">
             {lockedSelections[currentSet] 
               ? "You have already chosen an activity for this section."
-              : "Choose the math activity you want to work on by clicking that box and click NEXT"
+              : "These are example questions to show you what to expect. Pick the math problems you want to do, then click NEXT to start!"
             }
           </h2>
 
