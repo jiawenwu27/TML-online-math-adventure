@@ -67,7 +67,7 @@ export default function Games3({
       { id: 9, type: "answer", content: "144", direction: "bottom" },
   
       // Row 3
-      { id: 10, type: "question", content: "43 + 57 + 12", possibleanswerid: [15], answer: [], next: [20] },
+      { id: 10, type: "question", content: "45 + 27 + 34", possibleanswerid: [15], answer: [], next: [20] },
       { id: 11, type: "answer", content: "108", direction: "left" },
       { id: 12, type: "question", content: "180 - 25 - 37", possibleanswerid: [11, 13, 16, 17, 18], answer: [16], next: [10, 14, 20, 22, 24] },
       { id: 13, type: "answer", content: "128", direction: "right" },
