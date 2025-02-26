@@ -45,7 +45,7 @@ export default function Word3({
     {
       question: (
         <>
-          A magical library in the forest is collecting books to fill its shelves! Four generous animals bring their favorite stories to donate: Alex the Alligator brings 43 books about rivers and swamps. Bailey the Bunny hops in with 57 books full of carrot recipes. Casey the Cat arrives with 22 books about adventures with mice. {" "}
+          A magical library in the forest is collecting books to fill its shelves! Three generous animals bring their favorite stories to donate: Alex the Alligator brings 43 books about rivers and swamps. Bailey the Bunny hops in with 57 books full of carrot recipes. Casey the Cat arrives with 22 books about adventures with mice. {" "}
           <b>How many books did the library receive altogether?</b> Can you help the librarian count them?
         </>
       ),
