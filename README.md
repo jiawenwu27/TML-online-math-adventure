@@ -31,10 +31,9 @@ Built to serve research investigating:
 
 Here's a visual glimpse of the interactive experience. GIFs show:
 - *App demo in action*
-- *One of the gameplay mechanics*
-
-
 ![Choice Manipulation Demo](assets/app-demo.gif)
+
+- *One of the gameplay mechanics*
 ![Interactive Game Demo](assets/gameplay-demo.gif)
 
 
