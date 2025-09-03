@@ -4,6 +4,62 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 First, run the development server:
 
+<<<<<<< Updated upstream
+=======
+## 🎯 Highlights
+
+- **Experimentally structured**: Supports formal math, word problems, and interactive games with counterbalanced delivery.  
+- **Choice manipulation**: Users select activity types, offering research‑driven autonomy dynamics.  
+- **PWA & responsive**: Downloadable, works offline, and optimized for multiple devices.  
+- **Full-stack architecture**: Frontend powered by Next.js; backend powered by AWS Amplify and DynamoDB.  
+- **High-fidelity analytics**: Captures clickstreams, hint usage, timing, and completion data for research use.  
+
+---
+
+## 🔬 Motivation & Research Design
+
+Built to serve research investigating:
+
+- **Key question**: How do activity types and autonomy features affect parent–child math involvement and child learning?
+- **Design**: Randomized controlled study with counterbalanced activity order and structured difficulty progression.
+- **Target group**: Elementary students (grades 3–5).  
+- **Data collected**: Accuracy, response time, hints used, activity preference, session duration—using behavioral logs for subsequent quantitative analyses.
+
+---
+
+## 📱 App Preview
+
+Here's a visual glimpse of the interactive experience. GIFs show:
+- *App demo in action*
+- *One of the gameplay mechanics*
+
+
+![Choice Manipulation Demo](assets/app-demo.gif)
+![Interactive Game Demo](assets/gameplay-demo.gif)
+
+
+---
+
+## 🏗️ Technical Stack
+
+| Layer | Technologies & Tools |
+|-------|---------------------|
+| Frontend | Next.js, TypeScript, Tailwind CSS, Framer Motion |
+| Backend | AWS Amplify, DynamoDB, REST API |
+| Analytics | Real-time logging, local storage fallback, event capture |
+| UX Features | Mobile-first, accessibility-focused, PWA-ready |
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js v18+
+- npm or Yarn
+- AWS account for Amplify configuration
+
+### Install & Launch Locally
+>>>>>>> Stashed changes
 ```bash
 npm run dev
 # or
