@@ -1,11 +1,5 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## Getting Started
-
-First, run the development server:
-
-<<<<<<< Updated upstream
-=======
 ## 🎯 Highlights
 
 - **Experimentally structured**: Supports formal math, word problems, and interactive games with counterbalanced delivery.  
@@ -22,7 +16,7 @@ Built to serve research investigating:
 
 - **Key question**: How do activity types and autonomy features affect parent–child math involvement and child learning?
 - **Design**: Randomized controlled study with counterbalanced activity order and structured difficulty progression.
-- **Target group**: Elementary students (grades 3–5).  
+- **Target group**: Elementary students (grades 2–4).  
 - **Data collected**: Accuracy, response time, hints used, activity preference, session duration—using behavioral logs for subsequent quantitative analyses.
 
 ---
@@ -58,7 +52,6 @@ Here's a visual glimpse of the interactive experience. GIFs show:
 - AWS account for Amplify configuration
 
 ### Install & Launch Locally
->>>>>>> Stashed changes
 ```bash
 npm run dev
 # or
